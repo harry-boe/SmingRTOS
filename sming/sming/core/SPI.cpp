@@ -79,7 +79,7 @@ void SPIClass::end()
  *
  * Initializes the SPI bus using the defined SPISettings
  *
- * this methode does not initiate a transaction. So it can be used to
+ * this method does not initiate a transaction. So it can be used to
  * setup the SPI after SPI.begin()
  *
  */
