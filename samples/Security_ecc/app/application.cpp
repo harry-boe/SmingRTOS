@@ -1,47 +1,43 @@
 #include <user_config.h>
 #include <SmingCore.h>
 
+#include "HexDump.h"
+
 
 Timer procTimer;
 bool state = true;
 uint32_t startTime;
 
+HexDump  hex_dump;
+
 
 #include <uECC.h>
 
-extern "C" {
+const struct uECC_Curve_t * curve = uECC_secp160r1();
 
-static int RNG(uint8_t *dest, unsigned size) {
-  // Use the least-significant bits from the ADC for an unconnected pin (or connected to a source of
-  // random noise). This can take a long time to generate random data if the result of analogRead(0)
-  // doesn't change very frequently.
-  while (size) {
-    uint8_t val = 0;
-    for (unsigned i = 0; i < 8; ++i) {
-      int init = system_adc_read();
-      int count = 0;
-      while (system_adc_read() == init) {
-        ++count;
-      }
+void ecc_key1() {
+	uint8_t private1[21];
+	uint8_t public1[40];
 
-      if (count == 0) {
-         val = (val << 1) | (init & 0x01);
-      } else {
-         val = (val << 1) | (count & 0x01);
-      }
-    }
-    *dest = val;
-    ++dest;
-    --size;
-  }
-  // NOTE: it would be a good idea to hash the resulting random data using SHA-256 or similar.
-  return 1;
+	unsigned long a = millis();
+	uECC_make_key(public1, private1, curve);
+	unsigned long b = millis();
+
+	Serial.print("Made key 1 in "); Serial.println(b-a);
 }
 
-}  // extern "C"
+void ecc_key2() {
+	uint8_t private2[21];
+	uint8_t public2[40];
+
+	unsigned long a = millis();
+	uECC_make_key(public2, private2, curve);
+	unsigned long b = millis();
+	Serial.print("Made key 2 in "); Serial.println(b-a);
+}
+
 
 void test_ecc() {
-	  const struct uECC_Curve_t * curve = uECC_secp160r1();
 	  uint8_t private1[21];
 	  uint8_t private2[21];
 
@@ -86,6 +82,30 @@ void test_ecc() {
 	  }
 }
 
+
+
+void ecc_test_task(void *pvParameters)
+{
+	debugf("Test ecc");
+	test_ecc();
+	debugf("Test ecc done");
+    vTaskDelete(NULL);
+}
+
+void rng_test_task(void *pvParameters)
+{
+	size_t size = 16;
+	unsigned char *dest = new unsigned char[size]();
+	debugf("RNG test");
+	for (int i=0; i<20; i++) {
+		os_get_random(dest, size);
+		hex_dump.print(dest,size);
+	}
+	debugf("RNG_test done");
+    vTaskDelete(NULL);
+}
+
+
 void init()
 {
 	Serial.begin(SERIAL_BAUD_RATE); // 115200 by default
@@ -96,12 +116,12 @@ void init()
 //	WifiAccessPoint.enable(false);
 
 	startTime = millis();
-	debugf("Init RNG");
-	uECC_set_rng(&RNG);
+	debugf("\n\nStart");
+	debugf("\nInit RNG");
+	uECC_set_rng(&os_get_random);
 	debugf("Initialized in %d ms\n", startTime);
 
-	debugf("Test ecc");
-	test_ecc();
-	debugf("Test ecc done");
+    xTaskCreate(rng_test_task, (const signed char*) "RNG_test_tesk", 256, NULL, 2, NULL);
+    xTaskCreate(ecc_test_task, (const signed char*) "ecc_test_tesk", 256, NULL, 2, NULL);
 
 }
