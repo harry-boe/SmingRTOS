@@ -1,81 +1,30 @@
-#############################################################
 #
-# Root Level Makefile ESP8266 + RTOS
+# Makefile for security subsystem
 #
-# (c) by CHERTS <sleuthhound@gmail.com>
-#
-#############################################################
-
-ifeq ($(OS),Windows_NT)
-	UNAME := Windows
-	SMING_HOME ?= c:\tools\Sming\Sming
-	ESP_HOME ?= c:\Espressif
-	# Make path adjustments - replace back slashes, remove colon and add forward slash.
-	SMING_HOME := $(subst \,/,$(addprefix /,$(subst :,,$(SMING_HOME))))
-	ESP_HOME := $(subst \,/,$(addprefix /,$(subst :,,$(ESP_HOME))))
-	include Makefile-windows.mk
-else
-	UNAME := $(shell uname -s)
-	ifeq ($(UNAME),Darwin)
-		UNAME := MacOS
-		include Makefile-macos.mk
-	endif
-	ifeq ($(UNAME),Linux)
-		UNAME := Linux
-		include Makefile-linux.mk
-	endif
-	ifeq ($(UNAME),FreeBSD)
-		UNAME := FreeBSD
-		include Makefile-bsd.mk
-	endif
-endif
 
 # Base directory for the compiler
 XTENSA_TOOLS_ROOT ?= $(ESP_HOME)/xtensa-lx106-elf/bin
 
 # name for the target project
-TARGET     = libsming
+TARGET     = libsecurity
 BUILD_BASE = build
-FW_BASE    = firmware
 
 # which modules (subdirectories) of the project to include in compiling
- 
-MODULES = sming/appinit
-MODULES += sming/core 
-MODULES += sming/system
-MODULES += sming/wiring
-MODULES += sming/platform
-MODULES += sming/network 
-MODULES += sming/commandprocessing
-MODULES += $(filter %/, $(wildcard sming/services/*/))  
-MODULES += $(filter %/, $(wildcard libraries/*/))
 
-EXTRA_INCDIR =  $(SMING_HOME)/
-EXTRA_INCDIR += $(SMING_HOME)/rboot 
-EXTRA_INCDIR += $(SMING_HOME)/security/libraries/micro-ecc 
+MODULES = libraries/micro-ecc
 
-# sample for test building
-SAMPLES_DIRS := $(shell ls -1 ../samples)
 
-#LIBS = cirom gccirom hal phy pp net80211 wpa main freertos lwip udhcp
-# linking libgccirom.a instead of libgcc.a causes reset when working with flash memory (ie spi_flash_erase_sector)
-LIBS = microc gcc hal phy pp net80211 wpa crypto main freertos lwip minic pwm security
+EXTRA_INCDIR =  $(SMING_HOME)
+EXTRA_INCDIR += ${SMING_HOME}/security/libraries/micro-ecc
 
 # compiler flags using during compilation of source files
 #CFLAGS = -g -save-temps -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals -mno-serialize-volatile -D__ets__ -DICACHE_FLASH
 CFLAGS = -Os -g -Wpointer-arith -Wundef -Werror -Wl,-EL -nostdlib -mlongcalls -mtext-section-literals -finline-functions -fdata-sections -ffunction-sections -D__ets__ -DICACHE_FLASH -DARDUINO=106 -DCOM_SPEED_SERIAL=$(COM_SPEED_SERIAL) $(USER_CFLAGS)
-
-WIFI_SSID ?= ""
-WIFI_PWD ?= ""
-ifneq ($(WIFI_SSID), "")
-	CFLAGS += -DWIFI_SSID=\"$(WIFI_SSID)\"
-endif
-ifneq ($(WIFI_PWD), "")
-	CFLAGS += -DWIFI_PWD=\"$(WIFI_PWD)\"
-endif
-
 CFLAGS += -DNDEBUG=1
 CFLAGS += -DLWIP_DEBUG=0
+CFLAGS += -DuECC_OPTIMIZATION_LEVEL=0 -DuECC_PLATFORM=uECC_arch_other
+CFLAGS += -D__SIZEOF_INT128__=0 -Ddefault_RNG_defined=0
+CFLAGS += -Dasm_clear=0 -Dasm_set=0 -Dasm_rshift1=0 -Dasm_add=0 -Dasm_sub=0 -Dasm_mult=0
 # CXXFLAGS = $(CFLAGS) -std=c++11 -fno-rtti -fno-exceptions
 CXXFLAGS = $(CFLAGS) -fno-rtti -fno-exceptions -std=c++11 -felide-constructors -Wno-literal-suffix
 # linker flags used to generate the main object file
@@ -108,7 +57,7 @@ OBJDUMP := $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-objdump
 SRC_DIR   := $(MODULES)
 BUILD_DIR := $(addprefix $(BUILD_BASE)/,$(MODULES))
 
-USER_LIBDIR := compiler/lib
+USER_LIBDIR := $(SMING_HOME)/compiler/lib
 SDK_LIBDIR  := $(addprefix $(SDK_BASE)/,$(SDK_LIBDIR))
 SDK_INCDIR  := $(addprefix -I$(SDK_BASE)/,$(SDK_INCDIR))
 
@@ -134,6 +83,9 @@ Q := @
 vecho := @echo
 endif
 
+vecho := @echo
+
+
 vpath %.c $(SRC_DIR)
 vpath %.cpp $(SRC_DIR)
 
@@ -143,53 +95,30 @@ $1/%.o: %.c
 	$(Q) $(CC) $(INCDIR) $(MODULE_INCDIR) $(EXTRA_INCDIR) $(SDK_INCDIR) $(CFLAGS)  -c $$< -o $$@
 $1/%.o: %.cpp
 	$(vecho) "C+ $$<"
+	$(vecho) $(Q) $(CXX) $(EXTRA_INCDIR) $(SDK_INCDIR) $(CXXFLAGS)  -c $$< -o $$@
 	$(Q) $(CXX) $(EXTRA_INCDIR) $(SDK_INCDIR) $(CXXFLAGS)  -c $$< -o $$@
 endef
 
-.PHONY: all checkdirs clean firmware flashonefile flash flashinit rebuild
+.PHONY: all checkdirs clean 
 
 all: checkdirs $(APP_AR)
 
 $(APP_AR): $(OBJ)
 	$(vecho) "AR $@"
 	$(Q) $(AR) cru $@ $^
-	$(vecho) "Installing libsming"
+	$(vecho) "Installing $(TARGET)"
 	$(Q) cp -r $(APP_AR) $(USER_LIBDIR)
 	$(vecho) "Done"
-
-spiffy: spiffy/spiffy
-
-spiffy/spiffy:
-	$(vecho) "Making spiffy utility"
-	$(Q) $(MAKE) --no-print-directory -C spiffy V=$(V)
-	$(vecho) "Done"
-
+	
 checkdirs: $(BUILD_DIR) $(FW_BASE)
 
 $(BUILD_DIR):
 	$(Q) mkdir -p $@
-
-$(FW_BASE):
-	$(Q) mkdir -p $@
-
+	
 rebuild: clean all
 
 clean:
 	$(Q) rm -f $(USER_LIBDIR)/$(TARGET).a
 	$(Q) rm -rf $(BUILD_BASE)
-	$(Q) rm -rf $(FW_BASE)
-	$(Q) $(MAKE) --no-print-directory -C spiffy V=$(V) clean
-
-
-test: all spiffy recurse-samples
-
-samples: Basic_Blink HttpServer_Bootstrap Basic_rBoot
-
-recurse-samples: $(SAMPLES_DIRS)
-
-$(SAMPLES_DIRS):
-	$(Q) $(MAKE) -C $(SMING_HOME)/../samples/$@ clean
-	$(Q) $(MAKE) -C $(SMING_HOME)/../samples/$@
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call compile-objects,$(bdir))))
-

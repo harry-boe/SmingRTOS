@@ -144,6 +144,7 @@ EXTRA_INCDIR ?= include # default to include if not set by user
 EXTRA_INCDIR += $(SMING_HOME)/include 
 EXTRA_INCDIR += $(SMING_HOME)/ 
 EXTRA_INCDIR += $(SMING_HOME)/rboot
+EXTRA_INCDIR += $(SMING_HOME)/security/libraries/micro-ecc
 
 EXTRA_INCDIR += $(SDK_BASE)/include 
 EXTRA_INCDIR += $(SDK_BASE)/extra_include 
@@ -156,7 +157,7 @@ EXTRA_INCDIR += $(SDK_BASE)/include/espressif
 
 # libraries used in this project, mainly provided by the SDK
 USER_LIBDIR = $(SMING_HOME)/compiler/lib/
-LIBS		= microc gcc hal phy pp net80211 wpa crypto main freertos lwip minic pwm smartconfig sming
+LIBS		= microc gcc hal phy pp net80211 wpa crypto main freertos lwip minic pwm smartconfig sming security
 
 # compiler flags using during compilation of source files
 CFLAGS		= -Os -g -Wpointer-arith -Wundef -Werror -Wl,-EL -nostdlib -mlongcalls -mtext-section-literals -finline-functions -fdata-sections -ffunction-sections -D__ets__ -DICACHE_FLASH -DARDUINO=106 -DCOM_SPEED_SERIAL=$(COM_SPEED_SERIAL) $(USER_CFLAGS)
