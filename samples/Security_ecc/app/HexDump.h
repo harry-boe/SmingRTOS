@@ -13,7 +13,7 @@ public:
 	HexDump();
 	virtual ~HexDump();
 
-	void print(unsigned char *data, int len);
+	void print(const char *label, unsigned char *data, int len);
 	void resetAddr();
 private:
 	void pritln(char * buf, int len);

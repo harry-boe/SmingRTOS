@@ -19,9 +19,9 @@ HexDump::~HexDump() {
 }
 
 
-void HexDump::print(unsigned char *data, int len) {
+void HexDump::print(const char *label, unsigned char *data, int len) {
 
-	Serial.printf("Data: (%d Bytes)\n", len);
+	Serial.printf("%s: (%d Bytes)\n", label, len);
 	int idx = 0;
 	while (len-idx > 16) {
 		pritln((char *)&data[idx], 16);
