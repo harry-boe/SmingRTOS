@@ -34,13 +34,17 @@ RH_RF95::RH_RF95(uint8_t slaveSelectPin, uint8_t interruptPin, RHGenericSPI& spi
 
 bool RH_RF95::init()
 {
-    if (!RHSPIDriver::init())
-	return false;
+    if (!RHSPIDriver::init()) {
+    	debugf("RHSPIDriver::init() failed!");
+    	return false;
+    }
 
     // Determine the interrupt number that corresponds to the interruptPin
     int interruptNumber = digitalPinToInterrupt(_interruptPin);
-    if (interruptNumber == NOT_AN_INTERRUPT)
-	return false;
+    if (interruptNumber == NOT_AN_INTERRUPT) {
+    	debugf("interruptNumber == NOT_AN_INTERRUPT");
+    	return false;
+    }
 #ifdef RH_ATTACHINTERRUPT_TAKES_PIN_NUMBER
     interruptNumber = _interruptPin;
 #endif
@@ -53,14 +57,16 @@ bool RH_RF95::init()
     // Check we are in sleep mode, with LORA set
     if (spiRead(RH_RF95_REG_01_OP_MODE) != (RH_RF95_MODE_SLEEP | RH_RF95_LONG_RANGE_MODE))
     {
-//	Serial.println(spiRead(RH_RF95_REG_01_OP_MODE), HEX);
-	return false; // No device present?
+    	Serial.println(spiRead(RH_RF95_REG_01_OP_MODE), HEX);
+    	debugf("return false; // No device present?");
+    	return false; // No device present?
     }
 
     // Add by Adrien van den Bossche <vandenbo@univ-tlse2.fr> for Teensy
     // ARM M4 requires the below. else pin interrupt doesn't work properly.
     // On all other platforms, its innocuous, belt and braces
     pinMode(_interruptPin, INPUT); 
+	debugf("add interrupt pin %d", _interruptPin);
 
     // Set up interrupt handler
     // Since there are a limited number of interrupt glue functions isr*() available,
@@ -70,11 +76,14 @@ bool RH_RF95::init()
     // yourself based on knwledge of what Arduino board you are running on.
     if (_myInterruptIndex == 0xff)
     {
-	// First run, no interrupt allocated yet
-	if (_interruptCount <= RH_RF95_NUM_INTERRUPTS)
-	    _myInterruptIndex = _interruptCount++;
-	else
-	    return false; // Too many devices, not enough interrupt vectors
+    	// First run, no interrupt allocated yet
+    	if (_interruptCount <= RH_RF95_NUM_INTERRUPTS) {
+    		_myInterruptIndex = _interruptCount++;
+    		debugf("interrupt index %d", _myInterruptIndex);
+    	} else {
+    		debugf("Too many devices, not enough interrupt vectors");
+    		return false; // Too many devices, not enough interrupt vectors
+    	}
     }
     _deviceForInterrupt[_myInterruptIndex] = this;
     if (_myInterruptIndex == 0)
@@ -110,6 +119,7 @@ bool RH_RF95::init()
     // Lowish power
     setTxPower(13);
 
+    debugf("RH_RF95::init() -> done");
     return true;
 }
 

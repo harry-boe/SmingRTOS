@@ -16,14 +16,17 @@ bool RHSPIDriver::init()
 {
     // start the SPI library with the default speeds etc:
     // On Arduino Due this defaults to SPI1 on the central group of 6 SPI pins
+	debugf("_spi.begin();");
     _spi.begin();
 
     // Initialise the slave select pin
     // On Maple, this must be _after_ spi.begin
     pinMode(_slaveSelectPin, OUTPUT);
     digitalWrite(_slaveSelectPin, HIGH);
+	debugf("init _slaveSelectPin");
 
     delay(100);
+    debugf("RHSPIDriver::init() -> true");
     return true;
 }
 
