@@ -9,7 +9,7 @@
 #define _SMING_CORE_ESP8266EX_H_
 
 #include "../include/sming_config.h"
-#include "c_types.h"
+#include "espressif/c_types.h"
 #include "espressif/esp8266/pin_mux_register.h"
 #include "espressif/esp8266/eagle_soc.h"
 #include "../wiring/WConstants.h"
