@@ -42,6 +42,9 @@
 #include <stdlib.h>
 #include "atca_device.h"
 
+#include <espressif/esp_libc.h>
+
+
 /** \defgroup device ATCADevice (atca_)
  * \brief ATCADevice object - composite of command and interface objects
    @{ */
@@ -62,6 +65,7 @@ struct atca_device {
 
 ATCADevice newATCADevice(ATCAIfaceCfg *cfg )
 {
+
 	ATCADevice cadev = NULL;
 
 	if (cfg == NULL)

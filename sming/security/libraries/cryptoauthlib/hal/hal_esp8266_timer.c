@@ -2,7 +2,7 @@
  * hal_esp8266_timer.c
  *
  *  Created on: Jul 6, 2016
- *      Author: harry
+ *      Author: harry-boe
  */
 
 #include "atca_hal.h"

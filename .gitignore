@@ -5,3 +5,4 @@ firmware
 .settings
 nbproject
 .*.swp
+libsecurity.a
