@@ -194,12 +194,39 @@ ATCA_STATUS hal_i2c_idle(ATCAIface iface) {
 };
 
 
-ATCA_STATUS hal_i2c_sleep(ATCAIface iface) {
-    return ATCA_SUCCESS;
-};
+ATCA_STATUS hal_i2c_sleep(ATCAIface iface)
+{
+	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_sleep(ATCAIface iface)\n");
+
+	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
+
+    uint8_t bus = cfg->atcaunion.atcai2c.bus - 1;
+
+    uint8_t address = cfg->atcaunion.atcai2c.slave_address;
+
+    os_printf("using bus %d and adress %X\n", bus, address);
+
+	unsigned char txdata[] = {0x01};
+	uint16_t txlength = 1;
+
+	//! Address the device and indicate that bytes are to be written
+	ATCA_STATUS status = twi_writeTo(address>>1, txdata, txlength, I2C_STOP);
+	if (status == ATCA_SUCCESS) {
+		os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_sleep(ATCAIface iface) .. ATCA_SUCCESS\n");
+		return ATCA_SUCCESS;
+	}
+
+	return ATCA_TX_TIMEOUT;
+}
+
+
 ATCA_STATUS hal_i2c_release(void *hal_data ) {
-    return ATCA_SUCCESS;
-};
+
+	// if the use count for this bus has gone to 0 references, disable it.  protect against an unbracketed release
+	twi_stop();
+
+	return ATCA_SUCCESS;
+}
 
 
 ATCA_STATUS hal_i2c_discover_buses(int i2c_buses[], int max_buses) {

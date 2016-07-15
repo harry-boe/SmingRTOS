@@ -29,7 +29,7 @@ void setup() {
 
 	os_printf("\nuint8_t random_number[12];\n");
 
-	uint8_t random_number[12];
+	uint8_t random_number[12] = {0};
 
 //	system_init();
 
@@ -45,11 +45,11 @@ void setup() {
 		return;
 	}
 
-//	debugf("atcab_random((uint8_t*)&random_number);");
-//	atcab_random((uint8_t*)&random_number);
-//	debugf(".. done\r\n");
+	debugf("atcab_random((uint8_t*)&random_number);");
+	atcab_random((uint8_t*)&random_number);
+	debugf(".. done\r\n");
 
-//	dump.print(random_number, 12);
+	dump.print(random_number, 12);
 
 	debugf("setup RNG done\r\n");
 
@@ -65,8 +65,8 @@ void init()
 	WifiAccessPoint.enable(false);
 	WifiStation.enable(false);
 
-	pinMode(LED_PIN, OUTPUT);
-	procTimer.initializeMs(1000, blink).start();
+//	pinMode(LED_PIN, OUTPUT);
+//	procTimer.initializeMs(1000, blink).start();
 
 	os_delay_us(100);
 

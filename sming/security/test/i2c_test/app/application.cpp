@@ -74,6 +74,18 @@ void setup() {
 	hal_i2c_idle(if_ateccx08a_i2c);
 	debugf("===>  ATCA_STATUS hal_i2c_idle(ATCAIface iface)");
 
+	debugf("===>  ATCA_STATUS hal_i2c_wake(ATCAIface iface)");
+//	hal_i2c_wake(if_ateccx08a_i2c);
+	debugf("===>  ATCA_STATUS hal_i2c_wake(ATCAIface iface)");
+
+	debugf("===>  ATCA_STATUS hal_i2c_sleep(ATCAIface iface)");
+	hal_i2c_sleep(if_ateccx08a_i2c);
+	debugf("===>  ATCA_STATUS hal_i2c_sleep(ATCAIface iface)");
+
+	debugf("===>  ATCA_STATUS hal_i2c_release(void *hal_data)");
+	hal_i2c_release(NULL);
+	debugf("===>  ATCA_STATUS hal_i2c_release(void *hal_data)");
+
 }
 
 
