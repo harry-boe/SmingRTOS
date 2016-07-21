@@ -17,6 +17,7 @@ MODULES += libraries/cryptoauthlib/hal
 MODULES += libraries/cryptoauthlib/host
 MODULES += libraries/cryptoauthlib/crypto
 MODULES += libraries/cryptoauthlib/crypto/hashes
+MODULES += libraries/cryptoauthlib/trace
 
 
 EXTRA_INCDIR =  $(SMING_HOME)
@@ -25,6 +26,7 @@ EXTRA_INCDIR += ${SMING_HOME}/security/libraries/cryptoauthlib/basic
 EXTRA_INCDIR += ${SMING_HOME}/security/libraries/cryptoauthlib/hal
 EXTRA_INCDIR += ${SMING_HOME}/security/libraries/cryptoauthlib/host
 EXTRA_INCDIR += ${SMING_HOME}/security/libraries/cryptoauthlib/crypto
+EXTRA_INCDIR += ${SMING_HOME}/security/libraries/cryptoauthlib/trace
 
 # compiler flags using during compilation of source files
 #CFLAGS = -g -save-temps -Os -Wpointer-arith -Wundef -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals -mno-serialize-volatile -D__ets__ -DICACHE_FLASH

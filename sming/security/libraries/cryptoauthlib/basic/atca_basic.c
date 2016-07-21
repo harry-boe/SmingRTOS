@@ -47,6 +47,7 @@
  * \atmel_crypto_device_library_license_stop
  */
 
+#include "../trace/trace.h"
 
 #include "atca_basic.h"
 #include "host/atca_host.h"
@@ -350,6 +351,8 @@ ATCA_STATUS atcab_random(uint8_t *rand_out)
 	status = atRandom( _gCommandObj, &packet );
 	execution_time = atGetExecTime( _gCommandObj, CMD_RANDOM);
 
+	tr_packet(packet);
+
 	do {
 		if ( (status = atcab_wakeup()) != ATCA_SUCCESS )
 			break;
@@ -381,6 +384,7 @@ ATCA_STATUS atcab_random(uint8_t *rand_out)
 	} while (0);
 
 	_atcab_exit();
+	tracef("atcab_random", &packet.data[1], 32);
 	return status;
 }
 
@@ -579,6 +583,8 @@ ATCA_STATUS atcab_challenge_seed_update( const uint8_t *seed, uint8_t* rand_out 
  */
 ATCA_STATUS atcab_read_serial_number(uint8_t* serial_number)
 {
+
+	trace("atcab_read_serial_number(uint8_t* serial_number)");
 	// read config zone bytes 0-3 and 4-7, concatenate the two bits into serial_number
 	uint8_t status = ATCA_GEN_FAIL;
 	uint8_t bytes_read[ATCA_BLOCK_SIZE];
@@ -591,30 +597,37 @@ ATCA_STATUS atcab_read_serial_number(uint8_t* serial_number)
 		// Read first 32 byte block.  Copy the bytes into the config_data buffer
 		block = 0;
 		offset = 0;
-		if ( (status = atcab_read_zone(ATCA_ZONE_CONFIG, 0, block, offset, bytes_read, ATCA_WORD_SIZE)) != ATCA_SUCCESS )
+		if ( (status = atcab_read_zone(ATCA_ZONE_CONFIG, 0, block, offset, bytes_read, ATCA_WORD_SIZE)) != ATCA_SUCCESS ) {
+			tracef("atcab_read_serial_number status (1)", &status, 1);
 			break;
+		}
 
 		memcpy(&serial_number[cpyIndex], bytes_read, ATCA_WORD_SIZE);
 		cpyIndex += ATCA_WORD_SIZE;
 
 		block = 0;
 		offset = 2;
-		if ( (status = atcab_read_zone(ATCA_ZONE_CONFIG, 0, block, offset, bytes_read, ATCA_WORD_SIZE)) != ATCA_SUCCESS )
+		if ( (status = atcab_read_zone(ATCA_ZONE_CONFIG, 0, block, offset, bytes_read, ATCA_WORD_SIZE)) != ATCA_SUCCESS ) {
+			tracef("atcab_read_serial_number status (2)", &status, 1);
 			break;
+		}
 
 		memcpy(&serial_number[cpyIndex], bytes_read, ATCA_WORD_SIZE);
 		cpyIndex += ATCA_WORD_SIZE;
 
 		block = 0;
 		offset = 3;
-		if ( (status = atcab_read_zone(ATCA_ZONE_CONFIG, 0, block, offset, bytes_read, ATCA_WORD_SIZE)) != ATCA_SUCCESS )
+		if ( (status = atcab_read_zone(ATCA_ZONE_CONFIG, 0, block, offset, bytes_read, ATCA_WORD_SIZE)) != ATCA_SUCCESS ) {
+			tracef("atcab_read_serial_number status (3)", &status, 1);
 			break;
+		}
 
 		memcpy(&serial_number[cpyIndex], bytes_read, 1);
 
 	} while (0);
 
 	_atcab_exit();
+	tracef("atcab_read_serial_number ok", &status, 1);
 	return status;
 }
 
@@ -786,27 +799,44 @@ ATCA_STATUS atcab_ecdh_enc(uint16_t slotid, const uint8_t* pubkey, uint8_t* ret_
  */
 ATCA_STATUS atcab_get_addr(uint8_t zone, uint8_t slot, uint8_t block, uint8_t offset, uint16_t* addr)
 {
+	/*
+	tracef("atcab_get_addr zone", (char*)&zone, 1);
+	tracef("atcab_get_addr slot", (char*)&slot, 1);
+	tracef("atcab_get_addr block", (char*)&block, 1);
+	tracef("atcab_get_addr offset", (char*)&offset, 1);
+	*/
+
 	ATCA_STATUS status = ATCA_SUCCESS;
 	uint8_t memzone = zone & 0x03;
 
-	if (addr == NULL)
+	if (addr == NULL) {
+		trace("atcab_get_addr ATCA_BAD_PARAM NULL");
 		return ATCA_BAD_PARAM;
-	if ((memzone != ATCA_ZONE_CONFIG) && (memzone != ATCA_ZONE_DATA) && (memzone != ATCA_ZONE_OTP))
+	}
+	if ((memzone != ATCA_ZONE_CONFIG) && (memzone != ATCA_ZONE_DATA) && (memzone != ATCA_ZONE_OTP)) {
+		trace("atcab_get_addr ATCA_BAD_PARAM");
 		return ATCA_BAD_PARAM;
+	}
 	do {
 		// Initialize the addr to 00
 		*addr = 0;
 		// Mask the offset
 		offset = offset & (uint8_t)0x07;
 		if ((memzone == ATCA_ZONE_CONFIG) || (memzone == ATCA_ZONE_OTP)) {
+//			tracef("atcab_get_addr ATCA_ZONE_CONFIG ", (char *)addr, 2);
+//			tracef("atcab_get_addr block ", (char *)&block, 1);
 			*addr = block << 3;
+//			tracef("atcab_get_addr offset ", (char *)&offset, 1);
 			*addr |= offset;
 		}else {  // ATCA_ZONE_DATA
+//			tracef("atcab_get_addr ATCA_ZONE_DATA", (char *)addr, 2);
 			*addr = slot << 3;
 			*addr  |= offset;
 			*addr |= block << 8;
 		}
 	} while (0);
+
+//	tracef("atcab_get_addr ", (char *)addr, 2);
 
 	return status;
 }
@@ -934,6 +964,7 @@ ATCA_STATUS atcab_write_zone(uint8_t zone, uint8_t slot, uint8_t block, uint8_t 
 		packet.param1 = zone;
 		packet.param2 = addr;
 		memcpy( packet.data, data, len );
+//		tr_packet(packet);
 
 		if ( (status = atWrite( _gCommandObj, &packet )) != ATCA_SUCCESS )
 			break;
@@ -988,8 +1019,9 @@ ATCA_STATUS atcab_write_zone(uint8_t zone, uint8_t slot, uint8_t block, uint8_t 
  */
 ATCA_STATUS atcab_read_zone(uint8_t zone, uint8_t slot, uint8_t block, uint8_t offset, uint8_t *data, uint8_t len)
 {
+
 	ATCA_STATUS status = ATCA_SUCCESS;
-	ATCAPacket packet;
+	ATCAPacket packet = {0};
 	uint16_t addr;
 	uint16_t execution_time = 0;
 
@@ -1000,6 +1032,8 @@ ATCA_STATUS atcab_read_zone(uint8_t zone, uint8_t slot, uint8_t block, uint8_t o
 
 		if ( len != 4 && len != 32 )
 			return ATCA_BAD_PARAM;
+
+		tracef("atcab_read_zone (len)", (char *)&len, 1);
 
 		// The get address function checks the remaining variables
 		if ( (status = atcab_get_addr(zone, slot, block, offset, &addr)) != ATCA_SUCCESS )
@@ -1013,16 +1047,25 @@ ATCA_STATUS atcab_read_zone(uint8_t zone, uint8_t slot, uint8_t block, uint8_t o
 		packet.param1 = zone;
 		packet.param2 = addr;
 
-		if ( (status = atRead( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atRead( _gCommandObj, &packet )) != ATCA_SUCCESS ) {
+			tracef("ERROR: atcab_read_zone atRead (status)", (char *)&status, 1 );
 			break;
+		}
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_READMEM);
 
 		if ( (status = atcab_wakeup()) != ATCA_SUCCESS ) break;
 
 		// send the command
-		if ( (status = atsend( _gIface, (uint8_t*)&packet, packet.txsize )) != ATCA_SUCCESS )
+		trace("=== atsend ===");
+		tracef("atcab_read_zone atsend", (char *)&packet,packet.txsize);
+		trace("=== atsend ===");
+
+
+		if ( (status = atsend( _gIface, (uint8_t*)&packet, packet.txsize )) != ATCA_SUCCESS ) {
+			tracef("ERROR: atcab_read_zone atsend (status)", (char *)&status, 1 );
 			break;
+		}
 
 		// delay the appropriate amount of time for command to execute
 		atca_delay_ms(execution_time);

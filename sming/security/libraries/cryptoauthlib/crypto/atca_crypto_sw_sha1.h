@@ -1,6 +1,6 @@
 /**
  * \file
- * \brief Common defines for CryptoAuthLib software crypto wrappers.
+ * \brief Wrapper API for SHA 1 routines
  *
  * Copyright (c) 2015 Atmel Corporation. All rights reserved.
  *
@@ -39,9 +39,39 @@
  * \atmel_crypto_device_library_license_stop
  */
 
-#ifndef ATCA_CRYPTO_SW_H
-#define ATCA_CRYPTO_SW_H
+#ifndef ATCA_CRYPTO_SW_SHA1_H
+#define ATCA_CRYPTO_SW_SHA1_H
 
-#include "../atca_status.h"
+#include "atca_crypto_sw.h"
+#include <stddef.h>
+#include <stdint.h>
 
+/** \defgroup atcac_ Software crypto methods (atcac_)
+ *
+ * \brief
+ * These methods provide a software implementation of various crypto
+ * algorithms
+ *
+   @{ */
+
+#define ATCA_SHA1_DIGEST_SIZE (20)
+
+typedef struct {
+	uint32_t pad[32]; //!< Filler value to make sure the actual implementation has enough room to store its context. uint32_t is used to remove some alignment warnings.
+} atcac_sha1_ctx;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int atcac_sw_sha1_init(atcac_sha1_ctx* ctx);
+int atcac_sw_sha1_update(atcac_sha1_ctx* ctx, const uint8_t* data, size_t data_size);
+int atcac_sw_sha1_finish(atcac_sha1_ctx * ctx, uint8_t digest[ATCA_SHA1_DIGEST_SIZE]);
+int atcac_sw_sha1(const uint8_t * data, size_t data_size, uint8_t digest[ATCA_SHA1_DIGEST_SIZE]);
+
+#ifdef __cplusplus
+}
+#endif
+
+/** @} */
 #endif

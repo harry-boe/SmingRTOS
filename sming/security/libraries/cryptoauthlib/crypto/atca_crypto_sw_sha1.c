@@ -1,6 +1,6 @@
 /**
  * \file
- * \brief Common defines for CryptoAuthLib software crypto wrappers.
+ * \brief Wrapper API for SHA 1 routines
  *
  * Copyright (c) 2015 Atmel Corporation. All rights reserved.
  *
@@ -39,9 +39,49 @@
  * \atmel_crypto_device_library_license_stop
  */
 
-#ifndef ATCA_CRYPTO_SW_H
-#define ATCA_CRYPTO_SW_H
 
-#include "../atca_status.h"
+#include "atca_crypto_sw_sha1.h"
+#include "hashes/sha1_routines.h"
 
-#endif
+int atcac_sw_sha1_init(atcac_sha1_ctx* ctx)
+{
+	if (sizeof(CL_HashContext) > sizeof(atcac_sha1_ctx))
+		return ATCA_ASSERT_FAILURE; // atcac_sha1_ctx isn't large enough for this implementation
+	CL_hashInit((CL_HashContext*)ctx);
+
+	return ATCA_SUCCESS;
+}
+
+int atcac_sw_sha1_update(atcac_sha1_ctx* ctx, const uint8_t* data, size_t data_size)
+{
+	CL_hashUpdate((CL_HashContext*)ctx, data, (int)data_size);
+
+	return ATCA_SUCCESS;
+}
+
+int atcac_sw_sha1_finish(atcac_sha1_ctx* ctx, uint8_t digest[ATCA_SHA1_DIGEST_SIZE])
+{
+	CL_hashFinal((CL_HashContext*)ctx, digest);
+
+	return ATCA_SUCCESS;
+}
+
+int atcac_sw_sha1(const uint8_t* data, size_t data_size, uint8_t digest[ATCA_SHA1_DIGEST_SIZE])
+{
+	int ret;
+	atcac_sha1_ctx ctx;
+
+	ret = atcac_sw_sha1_init(&ctx);
+	if (ret != ATCA_SUCCESS)
+		return ret;
+
+	ret = atcac_sw_sha1_update(&ctx, data, data_size);
+	if (ret != ATCA_SUCCESS)
+		return ret;
+
+	ret = atcac_sw_sha1_finish(&ctx, digest);
+	if (ret != ATCA_SUCCESS)
+		return ret;
+
+	return ATCA_SUCCESS;
+}

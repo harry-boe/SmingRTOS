@@ -11,9 +11,10 @@
 #include <espressif/c_types.h>
 
 
-#define I2C_WRITE (uint8_t)0x00  //!< write command flag
-#define I2C_READ  (uint8_t)0x01   //!< read command flag
+//#define I2C_WRITE (uint8_t)0x00  //!< write command flag
+//#define I2C_READ  (uint8_t)0x01   //!< read command flag
 
+#define I2C_NO_STOP  0
 #define I2C_STOP  1
 
 /**

@@ -9,13 +9,17 @@
 #include <espressif/c_types.h>
 #include <espressif/esp_libc.h>
 #include <espressif/esp_misc.h>
+
 #include <security/libraries/cryptoauthlib/hal/hal_esp8266_i2c_RTOS.h>
+
 #include <sming/services/ArduinoESP_Wire/twi.h>
 #include <sming/services/ArduinoESP_Wire/esp8266_peri.h>
 
 #include "atca_hal.h"
 #include "../atca_status.h"
 #include "../atca_iface.h"
+
+#include "../trace/trace.h"
 
 
 uint32_t hal_sda, hal_scl;
@@ -26,117 +30,90 @@ uint32_t hal_sda, hal_scl;
 
 
 ATCA_STATUS hal_i2c_init( void *hal, ATCAIfaceCfg *cfg) {
+
 	ATCAHAL_t *phal = (ATCAHAL_t*)hal;
-
-    os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_init(void *hal, ATCAIfaceCfg *cfg)\n");
-
     uint8_t bus = cfg->atcaunion.atcai2c.bus - 1;
-
-    os_printf("using bus %d\n", bus);
 
     hal_sda = TWI_Bus[bus].pin_sda;
     hal_scl = TWI_Bus[bus].pin_scl;
 
-    os_printf("\n-->twi_init(sda %d, scl %d); \n", hal_sda, hal_scl);
+    os_printf("\nhal_i2c_init -> twi_init(sda %d, scl %d); \n", hal_sda, hal_scl);
 
 	twi_init(hal_sda, hal_scl);
 
-    os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_init(void *hal, ATCAIfaceCfg *cfg) .. done\n");
-
     uint32_t freq = cfg->atcaunion.atcai2c.baud;
 
-    os_printf("set twi_clock to baud %d\n", freq);
     twi_setClock(freq);
 
     return ATCA_SUCCESS;
 }
 
 ATCA_STATUS hal_i2c_post_init(ATCAIface iface) {
-
-	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_post_init(ATCAIface iface)\n");
-
     // TODO: define what to do here
-    os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_post_init(ATCAIface iface) .. done\n");
-
     return ATCA_SUCCESS;
 }
 
 
 ATCA_STATUS hal_i2c_send(ATCAIface iface, uint8_t *txdata, int txlength) {
 
-	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_send(ATCAIface iface, uint8_t *txdata, int txlength)\n");
-
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
-
 	uint8_t address = cfg->atcaunion.atcai2c.slave_address;
+	txdata[0] = 0x03;   //!< Word Address Value = Command
+	txlength++;         //!< count Word Address byte towards txlength
 
-	os_printf("\n-->twi_writeTo(address [%X], txdata [%s], txlength [%d], I2C_STOP)", address, txdata, txlength);
+	tracef("hal_i2c_send (addr)", &address, 1);
+	tracef("hal_i2c_send (data)", txdata, txlength);
 
 	uint8_t result = twi_writeTo(address>>1, txdata, txlength, I2C_STOP);
 
 	switch (result) {
 	case 2:
-		os_printf("\n\treceived NACK on transmit of address\r\n");
+		os_printf("\n\t hal_i2c_send - received NACK on transmit of address\r\n");
 		return ATCA_TX_FAIL;
 	case 3:
-		os_printf("\n\treceived NACK on transmit of data\r\n");
+		os_printf("\n\t hal_i2c_send - received NACK on transmit of data\r\n");
 		return ATCA_TX_FAIL;
 	case 4:
-		os_printf("\n\tline busy\r\n");
+		os_printf("\n\t hal_i2c_send - line busy\r\n");
 		return ATCA_TX_FAIL;
 	default:
 		break;
 	}
-	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_send(ATCAIface iface, uint8_t *txdata, int txlength)\n .. done");
     return ATCA_SUCCESS;
-
 };
 
 ATCA_STATUS hal_i2c_receive( ATCAIface iface, uint8_t *rxdata, uint16_t *rxlength) {
 
-	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_receive(ATCAIface iface, uint8_t *txdata, int txlength)\n");
-
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
-
 	uint8_t bus = cfg->atcaunion.atcai2c.bus - 1;
 	uint8_t address = cfg->atcaunion.atcai2c.slave_address;
-	uint16_t len = *rxlength;
 
-    os_printf("using bus %d and address %X\n", bus, address);
-
-    os_printf("twi_readFrom(address [%x], rxdata , *rxlength [%d], I2C_STOP)\n", address, len);
+	char *buf = (char *)rxlength;
+	uint16_t len = (uint16_t)buf[0];
 
 	uint8_t result = twi_readFrom(address>>1, rxdata, len, I2C_STOP);
 
 	switch (result) {
 	case 2:
-		os_printf("\n\treceived NACK on transmit of address\r\n");
-		return ATCA_RX_FAIL;
-	case 3:
-		os_printf("\n\treceived NACK on transmit of data\r\n");
+		os_printf("\n\t hal_i2c_receive - received NACK on transmit of address\r\n");
 		return ATCA_RX_FAIL;
 	case 4:
-		os_printf("\n\tline busy\r\n");
+		os_printf("\n\t hal_i2c_receive - line busy\r\n");
 		return ATCA_RX_FAIL;
 	default:
 		break;
 	}
-	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_receive(ATCAIface iface, uint8_t *txdata, int txlength)\n .. done");
+	tracef("hal_i2c_receive ", rxdata, len);
     return ATCA_SUCCESS;
-
 };
 
 
 
 ATCA_STATUS hal_i2c_wake(ATCAIface iface) {
 
-	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_wake(ATCAIface iface)\n");
-
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
 
     uint8_t bus = cfg->atcaunion.atcai2c.bus - 1;
-
-    os_printf("using bus %d\n", bus);
 
     uint32_t sda = TWI_Bus[bus].pin_sda;
 
@@ -159,25 +136,22 @@ ATCA_STATUS hal_i2c_wake(ATCAIface iface) {
 
 	if (status == ATCA_SUCCESS) {
 		//! Compare response with expected_response
-		if (memcmp(response, expected_response, 4) != 0)
+		if (memcmp(response, expected_response, 4) != 0) {
+			os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_wake(ATCAIface iface) FAILED %d\n", status);
 			status = ATCA_WAKE_FAILED;
+		}
 	}
-	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_wake(ATCAIface iface) .. %d\n", status);
 	return status;
 };
 
 
 ATCA_STATUS hal_i2c_idle(ATCAIface iface) {
 
-	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_idle(ATCAIface iface)\n");
-
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
 
     uint8_t bus = cfg->atcaunion.atcai2c.bus - 1;
 
     uint8_t address = cfg->atcaunion.atcai2c.slave_address;
-
-    os_printf("using bus %d and adress %X\n", bus, address);
 
 	unsigned char txdata[] = {0x02};
 	uint16_t txlength = 1;
@@ -185,26 +159,19 @@ ATCA_STATUS hal_i2c_idle(ATCAIface iface) {
 	//! Address the device and indicate that bytes are to be written
 	ATCA_STATUS status = twi_writeTo(address>>1, txdata, txlength, I2C_STOP);
 	if (status == ATCA_SUCCESS) {
-		os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_idle(ATCAIface iface) .. ATCA_SUCCESS\n");
 		return ATCA_SUCCESS;
 	}
-
-	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_idle(ATCAIface iface) .. ATCA_TX_TIMEOUT\n");
 	return ATCA_TX_TIMEOUT;
 };
 
 
 ATCA_STATUS hal_i2c_sleep(ATCAIface iface)
 {
-	os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_sleep(ATCAIface iface)\n");
-
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
 
     uint8_t bus = cfg->atcaunion.atcai2c.bus - 1;
 
     uint8_t address = cfg->atcaunion.atcai2c.slave_address;
-
-    os_printf("using bus %d and adress %X\n", bus, address);
 
 	unsigned char txdata[] = {0x01};
 	uint16_t txlength = 1;
@@ -212,10 +179,8 @@ ATCA_STATUS hal_i2c_sleep(ATCAIface iface)
 	//! Address the device and indicate that bytes are to be written
 	ATCA_STATUS status = twi_writeTo(address>>1, txdata, txlength, I2C_STOP);
 	if (status == ATCA_SUCCESS) {
-		os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_sleep(ATCAIface iface) .. ATCA_SUCCESS\n");
 		return ATCA_SUCCESS;
 	}
-
 	return ATCA_TX_TIMEOUT;
 }
 
