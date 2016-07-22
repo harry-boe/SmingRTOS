@@ -8,9 +8,9 @@
 #include <SmingCore.h>
 #include <security/libraries/cryptoauthlib/cryptoauthlib.h>
 
-#include <security/samples/Node_Authentication/app/NodeCommands.h>
-
+#include "NodeCommands.h"
 #include "provision.h"
+#include "node_auth.h"
 
 NodeCommands::NodeCommands()
 {
@@ -37,12 +37,13 @@ void NodeCommands::help() {
 	printf("lockdata - lock data and OTP zones - WARNING set to read only can't be undone\r\n");
 	printf("info     - get the chip revision\r\n");
 	printf("sernum   - get the chip serial number\r\n");
+	printf("random   - generate random number\r\n");
 
 	printf("\r\n");
 }
 
 
-void NodeCommands::clientPprovision() {
+void NodeCommands::clientProvision() {
 
 	int result = 0;
 
@@ -51,6 +52,59 @@ void NodeCommands::clientPprovision() {
 	printf("Result [%d]\r\n", result);
 
 }
+
+void NodeCommands::clientBuild() {
+
+	int result = 0;
+
+	printf("Client Build\r\n");
+	result = client_rebuild_certs();
+	printf("Result [%d]\r\n", result);
+
+}
+
+void NodeCommands::hostVerifyCertChain() {
+
+	int result = 0;
+
+	printf("Host Verify Chain\r\n");
+	result = host_verify_cert_chain();
+	printf("Result [%d]\r\n", result);
+
+}
+
+void NodeCommands::clientGenerateResponse() {
+
+	int result = 0;
+
+	printf("Client Generate Response\r\n");
+	result = client_generate_response();
+	printf("Result [%d]\r\n", result);
+
+}
+
+void NodeCommands::hostGenerateChallenge() {
+
+	int result = 0;
+
+	printf("Host Generate Challenge\r\n");
+	result = host_generate_challenge();
+	printf("Result [%d]\r\n", result);
+
+}
+
+void NodeCommands::hostVerifyResponse() {
+
+	int result = 0;
+
+	printf("Host Verify Response\r\n");
+	result = host_verify_response();
+	printf("Result [%d]\r\n", result);
+
+}
+
+
+
 
 /** \brief getinfo returns the revision bytes from the chip.  These bytes identify
  * the exact revision of the silicon.
@@ -78,6 +132,18 @@ void NodeCommands::sernum()
 	printf("Chip Serial Number : [");
 	this->printbuf(serial, 9);
 	printf("]\r\n");
+}
+
+void NodeCommands::random(void) {
+	int status;
+	uint8_t random_number[32] = {0};
+
+	atcab_random((uint8_t*)&random_number);
+
+	printf("Generate Random Number : [");
+	this->printbuf(random_number, 32);
+	printf("]\r\n");
+
 }
 
 /** \brief  lockstatus queries the lock status of configuration and data zones

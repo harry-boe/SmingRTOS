@@ -1,5 +1,5 @@
-#include <security/samples/Node_Authentication/app/NodeCommands.h>
-#include <security/samples/Node_Authentication/include/user_config.h>
+#include "NodeCommands.h"
+#include "user_config.h"
 #include <SmingCore.h>
 
 #include <security/libraries/cryptoauthlib/cryptoauthlib.h>
@@ -27,7 +27,17 @@ void serialCallBack(Stream& stream, char arrivedChar, unsigned short availableCh
 		if (!strcmp(str, "help")) {
 			cmd.help();
 		} else if (!strcmp(str, "client-provision")) {
-			cmd.clientPprovision();
+			cmd.clientProvision();
+		} else if (!strcmp(str, "client-build")) {
+			cmd.clientBuild();
+		} else if (!strcmp(str, "host-chain-verify")) {
+			cmd.hostVerifyCertChain();
+		} else if (!strcmp(str, "host-gen-chal")) {
+			cmd.hostGenerateChallenge();
+		} else if (!strcmp(str, "client-gen-resp")) {
+			cmd.clientGenerateResponse();
+		} else if (!strcmp(str, "host-verify-resp")) {
+			cmd.hostVerifyResponse();
 		} else if (!strcmp(str, "lockstat")) {
 			cmd.lockstat();
 		} else if (!strcmp(str, "lockcfg")) {
@@ -38,6 +48,8 @@ void serialCallBack(Stream& stream, char arrivedChar, unsigned short availableCh
 			cmd.info();
 		} else if (!strcmp(str, "sernum")) {
 			cmd.sernum();
+		} else if (!strcmp(str, "random")) {
+			cmd.random();
 		} else {
 			Serial.println("unknown command");
 		}
@@ -45,7 +57,7 @@ void serialCallBack(Stream& stream, char arrivedChar, unsigned short availableCh
 }
 
 
-ATCAIfaceCfg cfg_ateccx08a_i2c = {ATCA_I2C_IFACE, ATECC508A, 0xC0, 1, 400000, 800, 20};
+ATCAIfaceCfg cfg_ateccx08a_i2c = {ATCA_I2C_IFACE, ATECC508A, 0xC0, 1, 200000, 800, 20};
 
 void setup_authlib() {
 	Serial.println("Init Authentication Device\r\n");

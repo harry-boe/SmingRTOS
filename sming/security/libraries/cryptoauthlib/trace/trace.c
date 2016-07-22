@@ -39,22 +39,28 @@ void _pritln(char * buf, int len) {
 
 void tracef(char * label, char * buf, uint16_t len) {
 
+#ifdef CRYPT_TRACE
 	uint8_t i = 0;
 	os_printf("%s :", label);
 
 	t_addr = 0;
 	_pritln(buf, len);
+#endif
 
 }
 
-void trace(char * label) {
+void trace(char *label) {
 
+#ifdef CRYPT_TRACE
 	uint8_t i = 0;
 	os_printf("%s :\r\n", label);
+#endif
+
 }
 
 void tr_packet(ATCAPacket packet) {
 
+#ifdef CRYPT_TRACE
 	os_printf("\nATCAPacket");
 	os_printf("\n _reserved %X", packet._reserved);
 	os_printf("\n opcode %X", packet.opcode);
@@ -64,5 +70,7 @@ void tr_packet(ATCAPacket packet) {
 	os_printf("\n rxsize %d", packet.rxsize);
 	os_printf("\n execTime %X", packet.execTime);
 	tracef("\ndata", packet.data, 130);
+#endif
+
 }
 

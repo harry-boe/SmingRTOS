@@ -20,10 +20,17 @@ public:
 
 	void help(void);
 
-	void clientPprovision();
+	void clientProvision();
+	void clientBuild();
+	void hostVerifyCertChain();
+	void hostGenerateChallenge();
+	void clientGenerateResponse();
+	void hostVerifyResponse();
 
+	// utilty functions
 	void info(void);
 	void sernum(void);
+	void random(void);
 	void lockstat(void);
 	void lockcfg(void);
 	void lockdata(void);

@@ -1,5 +1,5 @@
-/** \file provision.h
-* \brief include for provisioning phase of example
+/** \file node_auth.h
+* \brief client and host high-level API for PKI node authentication with ATECC508A
 *
 * Copyright (c) 2015 Atmel Corporation. All rights reserved.
 *
@@ -39,9 +39,17 @@
  */ 
 
 
-#ifndef PROVISION_H_
-#define PROVISION_H_
+#ifndef NODE_AUTH_H_
+#define NODE_AUTH_H_
 
-int client_provision(void);
+int client_rebuild_certs(void);
 
-#endif /* PROVISION_H_ */
+int host_verify_cert_chain(void);
+
+int host_generate_challenge(void);
+
+int client_generate_response(void);
+
+int host_verify_response(void);
+
+#endif /* NODE_AUTH_H_ */
