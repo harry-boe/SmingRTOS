@@ -12,6 +12,7 @@ BUILD_BASE = build
 # which modules (subdirectories) of the project to include in compiling
 
 MODULES = libraries/cryptoauthlib
+MODULES += libraries/cryptoauthlib/atcacert
 MODULES += libraries/cryptoauthlib/basic
 MODULES += libraries/cryptoauthlib/hal
 MODULES += libraries/cryptoauthlib/host
@@ -22,6 +23,7 @@ MODULES += libraries/cryptoauthlib/trace
 
 EXTRA_INCDIR =  $(SMING_HOME)
 EXTRA_INCDIR += ${SMING_HOME}/security/libraries/cryptoauthlib
+EXTRA_INCDIR += ${SMING_HOME}/security/libraries/cryptoauthlib/atcacert
 EXTRA_INCDIR += ${SMING_HOME}/security/libraries/cryptoauthlib/basic
 EXTRA_INCDIR += ${SMING_HOME}/security/libraries/cryptoauthlib/hal
 EXTRA_INCDIR += ${SMING_HOME}/security/libraries/cryptoauthlib/host
