@@ -85,21 +85,28 @@ ATCA_STATUS hal_i2c_send(ATCAIface iface, uint8_t *txdata, int txlength) {
 ATCA_STATUS hal_i2c_receive( ATCAIface iface, uint8_t *rxdata, uint16_t *rxlength) {
 
 	ATCAIfaceCfg *cfg = atgetifacecfg(iface);
+
+	ATCA_STATUS status = ATCA_RX_TIMEOUT;
+
 	uint8_t bus = cfg->atcaunion.atcai2c.bus - 1;
 	uint8_t address = cfg->atcaunion.atcai2c.slave_address;
+	int retries = cfg->rx_retries;
 
 	char *buf = (char *)rxlength;
 	uint16_t len = (uint16_t)buf[0];
 
-	uint8_t result = twi_readFrom(address>>1, rxdata, len, I2C_STOP);
+	while (retries-- > 0 && status != ATCA_SUCCESS) {
+		//! Address the device and indicate that bytes are to be read
+		status = twi_readFrom(address>>1, rxdata, len, I2C_STOP);
+	}
 
-	switch (result) {
+	switch (status) {
 	case 2:
 		os_printf("\n\t hal_i2c_receive - received NACK on transmit of address\r\n");
-		return ATCA_RX_FAIL;
+		return ATCA_TX_TIMEOUT;
 	case 4:
 		os_printf("\n\t hal_i2c_receive - line busy\r\n");
-		return ATCA_RX_FAIL;
+		return ATCA_RX_NO_RESPONSE;
 	default:
 		break;
 	}
@@ -123,21 +130,26 @@ ATCA_STATUS hal_i2c_wake(ATCAIface iface) {
 	uint8_t expected_response[4] = { 0x04, 0x11, 0x33, 0x43 };
 	uint16_t rxlength = sizeof(response);
 
-	//! Generate Wake Token
-	I2C_DATA_LOW();
-	os_delay_us(80);
-	I2C_DATA_HIGH();
+	// we try max 3 times
+	uint8_t retries = 3;
+	while (retries-- && status) {
+		//! Generate Wake Token
+		I2C_DATA_LOW();
+		os_delay_us(80);
+		I2C_DATA_HIGH();
 
-	//! Wait tWHI + tWLO
-	atca_delay_us(cfg->wake_delay);
+		//! Wait tWHI + tWLO
+		atca_delay_us(cfg->wake_delay);
 
-	//! Receive Wake Response
-	status = hal_i2c_receive(iface, response, (uint16_t *)&rxlength);
+		//! Receive Wake Response
+		status = hal_i2c_receive(iface, response, (uint16_t *)&rxlength);
+	}
 
 	if (status == ATCA_SUCCESS) {
 		//! Compare response with expected_response
 		if (memcmp(response, expected_response, 4) != 0) {
 			os_printf("\n-->hal_esp8266_i2c_rtos.c\tATCA_STATUS hal_i2c_wake(ATCAIface iface) FAILED %d\n", status);
+			os_printf("\n-->hal_esp8266_i2c_rtos.c\tretries %d\n", retries);
 			status = ATCA_WAKE_FAILED;
 		}
 	}

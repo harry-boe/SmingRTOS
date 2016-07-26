@@ -52,6 +52,82 @@ const uint8_t g_cert_template_1_signer[] = {
     0x1B, 0x45, 0xBA, 0x1D
 };
 
+
+const atcacert_def_t g_cert_def_1_signer = {
+    .type                   = CERTTYPE_X509,
+    .template_id            = 1,
+    .chain_id               = 0,
+    .private_key_slot       = 0,
+    .sn_source              = SNSRC_PUB_KEY_HASH,
+    .cert_sn_dev_loc        = {
+        .zone      = DEVZONE_NONE,
+        .slot      = 0,
+        .is_genkey = 0,
+        .offset    = 0,
+        .count     = 0
+    },
+    .issue_date_format      = DATEFMT_RFC5280_UTC,
+    .expire_date_format     = DATEFMT_RFC5280_GEN,
+    .tbs_cert_loc           = {
+        .offset = 4,
+        .count  = 411
+    },
+    .expire_years           = 0,
+    .public_key_dev_loc     = {
+        .zone      = DEVZONE_DATA,
+        .slot      = 11,
+        .is_genkey = 0,
+        .offset    = 0,
+        .count     = 72
+    },
+    .comp_cert_dev_loc      = {
+        .zone      = DEVZONE_DATA,
+        .slot      = 12,
+        .is_genkey = 0,
+        .offset    = 0,
+        .count     = 72
+    },
+    .std_cert_elements      = {
+        { // STDCERT_PUBLIC_KEY
+            .offset = 247,
+            .count  = 64
+        },
+        { // STDCERT_SIGNATURE
+            .offset = 427,
+            .count  = 74
+        },
+        { // STDCERT_ISSUE_DATE
+            .offset = 117,
+            .count  = 13
+        },
+        { // STDCERT_EXPIRE_DATE
+            .offset = 132,
+            .count  = 15
+        },
+        { // STDCERT_SIGNER_ID
+            .offset = 216,
+            .count  = 4
+        },
+        { // STDCERT_CERT_SN
+            .offset = 15,
+            .count  = 16
+        },
+        { // STDCERT_AUTH_KEY_ID
+            .offset = 395,
+            .count  = 20
+        },
+        { // STDCERT_SUBJ_KEY_ID
+            .offset = 362,
+            .count  = 20
+        }
+    },
+    .cert_elements          = NULL,
+    .cert_elements_count    = 0,
+    .cert_template          = g_cert_template_1_signer,
+    .cert_template_size     = sizeof(g_cert_template_1_signer),
+};
+
+/*
 const atcacert_def_t g_cert_def_1_signer = {
     CERTTYPE_X509,
     1,
@@ -125,6 +201,7 @@ const atcacert_def_t g_cert_def_1_signer = {
     g_cert_template_1_signer,
     sizeof(g_cert_template_1_signer),
 };
+*/
 
 #ifdef __cplusplus
 }

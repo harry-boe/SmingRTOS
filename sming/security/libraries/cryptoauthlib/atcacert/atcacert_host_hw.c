@@ -39,6 +39,8 @@
  * \atmel_crypto_device_library_license_stop
  */
 
+#include <stdio.h>
+
 #include "atcacert_host_hw.h"
 #include "basic/atca_basic.h"
 #include "crypto/atca_crypto_sw_sha2.h"
@@ -53,20 +55,28 @@ int atcacert_verify_cert_hw( const atcacert_def_t* cert_def,
 	uint8_t signature[64];
 	bool is_verified = false;
 
-	if (cert_def == NULL || ca_public_key == NULL || cert == NULL)
+	if (cert_def == NULL || ca_public_key == NULL || cert == NULL) {
+		printf("atcacert_verify_cert_hw ATCACERT_E_BAD_PARAMS\r\n");
 		return ATCACERT_E_BAD_PARAMS;
+	}
 
 	ret = atcacert_get_tbs_digest(cert_def, cert, cert_size, tbs_digest);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCACERT_E_SUCCESS) {
+		printf("atcacert_verify_cert_hw ERROR atcacert_get_tbs_digest(cert_def, cert, cert_size, tbs_digest)\r\n");
 		return ret;
+	}
 
 	ret = atcacert_get_signature(cert_def, cert, cert_size, signature);
-	if (ret != ATCACERT_E_SUCCESS)
+	if (ret != ATCACERT_E_SUCCESS) {
+		printf("atcacert_verify_cert_hw ERROR atcacert_get_signature(cert_def, cert, cert_size, signature);\r\n");
 		return ret;
+	}
 
 	ret = atcab_verify_extern(tbs_digest, signature, ca_public_key, &is_verified);
-	if (ret != ATCA_SUCCESS)
+	if (ret != ATCA_SUCCESS) {
+		printf("atcab_verify_extern(tbs_digest, signature, ca_public_key, &is_verified);\r\n");
 		return ret;
+	}
 
 	return is_verified ? ATCACERT_E_SUCCESS : ATCACERT_E_VERIFY_FAILED;
 }

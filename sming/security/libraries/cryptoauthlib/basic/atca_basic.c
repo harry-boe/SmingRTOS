@@ -49,6 +49,8 @@
 
 #include "../trace/trace.h"
 
+#include <stdio.h>
+
 #include "atca_basic.h"
 #include "host/atca_host.h"
 
@@ -648,8 +650,10 @@ ATCA_STATUS atcab_verify_extern(const uint8_t *message, const uint8_t *signature
 		*verified = false;
 
 		// nonce passthrough
-		if ( (status = atcab_challenge(message)) != ATCA_SUCCESS )
+		if ( (status = atcab_challenge(message)) != ATCA_SUCCESS ) {
+			printf("ERROR atcab_verify_extern - nonce passthrough\r\n");
 			break;
+		}
 
 		// build a verify command
 		packet.param1 = VERIFY_MODE_EXTERNAL; //verify the signature
@@ -657,24 +661,33 @@ ATCA_STATUS atcab_verify_extern(const uint8_t *message, const uint8_t *signature
 		memcpy( &packet.data[0], signature, ATCA_SIG_SIZE);
 		memcpy( &packet.data[64], pubkey, ATCA_PUB_KEY_SIZE);
 
-		if ( (status = atVerify( _gCommandObj, &packet )) != ATCA_SUCCESS )
+		if ( (status = atVerify( _gCommandObj, &packet )) != ATCA_SUCCESS ) {
+			printf("ERROR atcab_verify_extern - atVerify( _gCommandObj, &packet )\r\n");
 			break;
+		}
 
 		execution_time = atGetExecTime( _gCommandObj, CMD_VERIFY );
 
-		if ( (status = atcab_wakeup()) != ATCA_SUCCESS )
+		if ( (status = atcab_wakeup()) != ATCA_SUCCESS ) {
+			printf("ERROR atcab_verify_extern - (status = atcab_wakeup()) != ATCA_SUCCESS\r\n");
 			break;
+		}
 
 		// send the command
-		if ( (status = atsend( _gIface, (uint8_t*)&packet, packet.txsize )) != ATCA_SUCCESS )
+		if ( (status = atsend( _gIface, (uint8_t*)&packet, packet.txsize )) != ATCA_SUCCESS ) {
+			printf("ERROR atcab_verify_extern - atsend( _gIface, (uint8_t*)&packet, packet.txsize )\r\n");
 			break;
+		}
 
 		// delay the appropriate amount of time for command to execute
+		printf("atcab_verify_extern - atca_delay_ms(execution_time); %d\r\n", execution_time);
 		atca_delay_ms(execution_time);
 
 		// receive the response
-		if ( (status = atreceive( _gIface, packet.data, &(packet.rxsize) )) != ATCA_SUCCESS )
+		if ( (status = atreceive( _gIface, packet.data, &(packet.rxsize) )) != ATCA_SUCCESS ) {
+			printf("ERROR atcab_verify_extern - atreceive( _gIface, packet.data, &(packet.rxsize)\r\n");
 			break;
+		}
 
 		// Check response size
 		if (packet.rxsize < 4) {
@@ -682,16 +695,22 @@ ATCA_STATUS atcab_verify_extern(const uint8_t *message, const uint8_t *signature
 				status = ATCA_RX_FAIL;
 			else
 				status = ATCA_RX_NO_RESPONSE;
+			printf("atcab_verify_extern (packet.rxsize < 4) status %d\r\n", status);
 			break;
 		}
+		printf("atcab_verify_extern atreceive status %d\r\n", status);
 
 		status = isATCAError(packet.data);
+		tracef("isATCAError ",packet.data, sizeof(packet.data));
+		printf("atcab_verify_extern isATCAError(packet.data) %d\r\n", status);
+
 		*verified = (status == 0);
 		if (status == ATCA_CHECKMAC_VERIFY_FAILED)
 			status = ATCA_SUCCESS; // Verify failed, but command succeeded
 	} while (0);
 
 	_atcab_exit();
+	printf("atcab_verify_extern verified result %d\r\n", status);
 	return status;
 }
 

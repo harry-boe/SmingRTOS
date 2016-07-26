@@ -9,6 +9,7 @@
 #include <ctype.h>
 #include <espressif/esp_libc.h>
 
+#define CRYPT_TRACE
 
 char t_oc[] = "0123456789ABCDEF";
 int t_addr = 0;

@@ -26,8 +26,8 @@ void serialCallBack(Stream& stream, char arrivedChar, unsigned short availableCh
 		}
 		if (!strcmp(str, "help")) {
 			cmd.help();
-		} else if (!strcmp(str, "client-provision")) {
-			cmd.clientProvision();
+//		} else if (!strcmp(str, "client-provision")) {
+//			cmd.clientProvision();
 		} else if (!strcmp(str, "client-build")) {
 			cmd.clientBuild();
 		} else if (!strcmp(str, "host-chain-verify")) {
@@ -50,6 +50,10 @@ void serialCallBack(Stream& stream, char arrivedChar, unsigned short availableCh
 			cmd.sernum();
 		} else if (!strcmp(str, "random")) {
 			cmd.random();
+		} else if (!strcmp(str, "cert-tmpl")) {
+			cmd.ctempl();
+		} else if (!strcmp(str, "dev-tmpl")) {
+			cmd.dtempl();
 		} else {
 			Serial.println("unknown command");
 		}

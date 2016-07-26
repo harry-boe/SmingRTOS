@@ -11,6 +11,11 @@
 #include "NodeCommands.h"
 #include "provision.h"
 #include "node_auth.h"
+#include "cert_def_1_signer.h"
+#include "cert_def_2_device.h"
+
+#include <sming/services/HexDump/HexDump.h>
+extern HexDump dump;
 
 NodeCommands::NodeCommands()
 {
@@ -38,6 +43,8 @@ void NodeCommands::help() {
 	printf("info     - get the chip revision\r\n");
 	printf("sernum   - get the chip serial number\r\n");
 	printf("random   - generate random number\r\n");
+	printf("cert-tmpl- show cert template data\r\n");
+	printf("dev-tmpl - how device template data\r\n");
 
 	printf("\r\n");
 }
@@ -142,6 +149,22 @@ void NodeCommands::random(void) {
 
 	printf("Generate Random Number : [");
 	this->printbuf(random_number, 32);
+	printf("]\r\n");
+
+}
+
+void NodeCommands::ctempl(void) {
+
+	printf("CA Template  : [");
+	dump.print((unsigned char*)g_cert_template_1_signer, sizeof(g_cert_template_1_signer));
+	printf("]\r\n");
+
+}
+
+void NodeCommands::dtempl(void) {
+
+	printf("Device Template  : [");
+	dump.print((unsigned char*)g_cert_template_2_device, sizeof(g_cert_template_1_signer));
 	printf("]\r\n");
 
 }

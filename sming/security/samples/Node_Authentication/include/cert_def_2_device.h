@@ -41,77 +41,77 @@ const uint8_t g_cert_template_2_device[] = {
 };
 
 const atcacert_def_t g_cert_def_2_device = {
-    CERTTYPE_X509,
-    2,
-    0,
-    0,
-    SNSRC_PUB_KEY_HASH,
-    {
-      DEVZONE_NONE,
-      0,
-      0,
-      0,
-      0
+    .type                   = CERTTYPE_X509,
+    .template_id            = 2,
+    .chain_id               = 0,
+    .private_key_slot       = 0,
+    .sn_source              = SNSRC_PUB_KEY_HASH,
+    .cert_sn_dev_loc        = {
+        .zone      = DEVZONE_NONE,
+        .slot      = 0,
+        .is_genkey = 0,
+        .offset    = 0,
+        .count     = 0
     },
-    DATEFMT_RFC5280_UTC,
-    DATEFMT_RFC5280_GEN,
-    {
-      4,
-      343
+    .issue_date_format      = DATEFMT_RFC5280_UTC,
+    .expire_date_format     = DATEFMT_RFC5280_GEN,
+    .tbs_cert_loc           = {
+        .offset = 4,
+        .count  = 343
     },
-    0,
-    {
-      DEVZONE_DATA,
-      0,
-      1,
-      0,
-      64
+    .expire_years           = 0,
+    .public_key_dev_loc     = {
+        .zone      = DEVZONE_DATA,
+        .slot      = 0,
+        .is_genkey = 1,
+        .offset    = 0,
+        .count     = 64
     },
-    {
-      DEVZONE_DATA,
-      10,
-      0,
-      0,
-      72
+    .comp_cert_dev_loc      = {
+        .zone      = DEVZONE_DATA,
+        .slot      = 10,
+        .is_genkey = 0,
+        .offset    = 0,
+        .count     = 72
     },
-    {
+    .std_cert_elements      = {
         { // STDCERT_PUBLIC_KEY
-          246,
-          64
+            .offset = 246,
+            .count  = 64
         },
         { // STDCERT_SIGNATURE
-          359,
-          74
+            .offset = 359,
+            .count  = 74
         },
         { // STDCERT_ISSUE_DATE
-          121,
-          13
+            .offset = 121,
+            .count  = 13
         },
         { // STDCERT_EXPIRE_DATE
-          136,
-          15
+            .offset = 136,
+            .count  = 15
         },
         { // STDCERT_SIGNER_ID
-          113,
-          4
+            .offset = 113,
+            .count  = 4
         },
         { // STDCERT_CERT_SN
-          15,
-          16
+            .offset = 15,
+            .count  = 16
         },
         { // STDCERT_AUTH_KEY_ID
-          327,
-          20
+            .offset = 327,
+            .count  = 20
         },
         { // STDCERT_SUBJ_KEY_ID
-          0,
-          0
+            .offset = 0,
+            .count  = 0
         }
     },
-    NULL,
-    0,
-    g_cert_template_2_device,
-    sizeof(g_cert_template_2_device),
+    .cert_elements          = NULL,
+    .cert_elements_count    = 0,
+    .cert_template          = g_cert_template_2_device,
+    .cert_template_size     = sizeof(g_cert_template_2_device),
 };
 
 

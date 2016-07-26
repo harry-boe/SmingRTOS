@@ -126,16 +126,25 @@ int host_verify_cert_chain(void)
     
     // Validate signer cert against its certificate authority (CA) public key
     ret = atcacert_verify_cert_hw(&g_cert_def_1_signer,  g_signer_cert, g_signer_cert_size, g_signer_ca_public_key);
-    if (ret != ATCACERT_E_SUCCESS) return ret;
+    if (ret != ATCACERT_E_SUCCESS) {
+        printf("ERROR - HOST: Signer certificate verified against signer certificate authority (CA) public key!\r\n");
+    	return ret;
+    }
     printf("HOST: Signer certificate verified against signer certificate authority (CA) public key!\r\n");
     
     // Get the signer's public key from its certificate
     ret = atcacert_get_subj_public_key(&g_cert_def_1_signer, g_signer_cert, g_signer_cert_size, signer_public_key);
-    if (ret != ATCACERT_E_SUCCESS) return ret;
+    if (ret != ATCACERT_E_SUCCESS) {
+    	printf("ERROR : Get the signer's public key from its certificate");
+    	return ret;
+    }
     
     // Validate the device cert against its certificate authority (CA) which is the signer
     ret = atcacert_verify_cert_hw(&g_cert_def_2_device, g_device_cert, g_device_cert_size, signer_public_key);
-    if (ret != ATCACERT_E_SUCCESS) return ret;
+    if (ret != ATCACERT_E_SUCCESS) {
+        printf("ERROR HOST: Device certificate verified against signer public key!\r\n");
+    	return ret;
+    }
     printf("HOST: Device certificate verified against signer public key!\r\n");
     
     return 0;
@@ -170,7 +179,10 @@ int client_generate_response(void)
     int ret = 0;
 //    char disp_str[256];
 //    int disp_size = sizeof(disp_str);
-    
+
+    printf("CLIENT: Use previous generated challenge:");
+	dump.print(g_challenge, sizeof(g_challenge));
+
     ret = atcacert_get_response(g_cert_def_2_device.private_key_slot, g_challenge, g_response);
     if (ret != ATCACERT_E_SUCCESS) return ret;
 //    disp_size = sizeof(disp_str);
@@ -200,6 +212,12 @@ int host_verify_response(void)
     printf("HOST: Device public key from certificate:");
 	dump.print(device_public_key, sizeof(device_public_key));
     
+    printf("CLIENT: Use previous generated challenge:");
+	dump.print(g_challenge, sizeof(g_challenge));
+
+    printf("CLIENT: Use previsously calculated response to host challenge:");
+	dump.print(g_response, sizeof(g_response));
+
     ret = atcacert_verify_response_hw(device_public_key, g_challenge, g_response);
     if (ret != ATCACERT_E_SUCCESS) return ret;
     printf("HOST: Device response to challenge verified!\r\n");

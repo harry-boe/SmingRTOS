@@ -31,6 +31,9 @@ public:
 	void info(void);
 	void sernum(void);
 	void random(void);
+	void ctempl(void);
+	void dtempl(void);
+
 	void lockstat(void);
 	void lockcfg(void);
 	void lockdata(void);

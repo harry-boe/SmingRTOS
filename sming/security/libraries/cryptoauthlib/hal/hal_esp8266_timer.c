@@ -7,7 +7,10 @@
 
 #include "atca_hal.h"
 
+#include "espressif/c_types.h"
 #include "espressif/esp_misc.h"
+#include "espressif/esp_system.h"
+
 
 /** \defgroup hal_ Hardware abstraction layer (hal_)
  *
@@ -42,7 +45,13 @@ void atca_delay_10us(uint32_t delay)
 void atca_delay_ms(uint32_t delay)
 {
 	// use espressif os delay
-	os_delay_us(delay * 1000);
+	uint32 startTime = system_get_time() / 1000UL;
+	uint32 time;
+	do {
+		os_delay_us(1000);
+		time = system_get_time() / 1000UL - startTime;
+	} while (time  < delay);
+	printf ("atcs_delay was %d ms required %d\n", time, delay);
 }
 
 
