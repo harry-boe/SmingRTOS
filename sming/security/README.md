@@ -1,4 +1,9 @@
-# support for the Atmel CryptoAuthentication devices and Libraries
+# SmingRTOS libsecurity
+
+This folder contains security related librarie implementations and sample projects.
+
+
+### Support for the Atmel CryptoAuthentication devices and Libraries
 
 Based on: Sming_RTOS Beta version
 Based on: Espressif RTOS_SDK 1.4.0
@@ -6,9 +11,10 @@ Based on: Atmel CryptoAuthLib Firmware Library 20160108
 
 Currently tested with ATECC508A device but should work with other devices as well
 
-The library port is as less intrusiv as possible.
+### Notes on library port
 
-The main modifications are:
+The library port is as less intrusiv as possible.
+The main modifications are
 
 -	Declare the required includes whee needed. 
 	All includes refer files from the espressif SDK. Sming specif includes are only used when absolutly neccesary.
@@ -30,7 +36,7 @@ The main modifications are:
 	This is obviously forcing RTOS heap overflows. 
 	Display output has bin replace with a HexDump utility that can nouw be found in the sming/services folder
 	
-Building the samples
+### Building the samples
 
 -	All security related code nucluding the samples are located in it's own folder within the sming folder
 -	To build and use the security modules simply type make in the security folder
@@ -42,7 +48,7 @@ Note
 - 	building against rBoot is not yet support not tested. But it should work by simply modifiing the rBoot 
 	Makefile (including the security lib)
 	
-Required Hardware
+### Required Hardware
 
 -	Obviously the solution erquires an I2C ATECC508A cryptochip to work with
 	The can be sourced from Atmel, Mouser or other source for less than 1$
@@ -54,11 +60,11 @@ Required Hardware
 -	Other more expensife options are the "AT88CK101 Development Kit" from atmel that have a socket to hold the
 	chip and connectors to wire them with the ESP 
 	
-Configuring sample application
+### Configuring sample application
 
 -	Check out the Node_Authetication app on how to init the Library
 
-`
+```cpp
 ATCAIfaceCfg cfg_ateccx08a_i2c = {
 		ATCA_I2C_IFACE, 	// active iface - how to interpret the union below
 		ATECC508A, 			// explicit device type
@@ -67,32 +73,29 @@ ATCAIfaceCfg cfg_ateccx08a_i2c = {
 		200000, 			// baud rate i.e. I2C bus frequency - typically 400000
 		800,				// wake_delay: microseconds of tWHI + tWLO which varies based on chip type
 		20};				// the number of retries to attempt for receiving bytes
-`
-		
+```		
 
 -	The logical bus numbers i.e. the assigned GPIO pins are defined in in the HAL implementation -> hal_esp8266_i2c_RTOS.h
 
-`
+```cpp
 #define MAX_I2C_BUSES 2
 
 I2CBuses TWI_Bus[MAX_I2C_BUSES] = {{4, 5}, {0,2}};
-`
+```
 
-Using the Node_Authentication sample app
+### Using the Node_Authentication sample app
 
 -	The samples should be executed in sequence as one command might initialize the context for the next command (e.g. create a calleng before the response and verifiing the response)
 -	The client-provision will create the keys, stores them on the chip and lock the device to read only.
 	This is a one time only process. However you can call the command multiple times but it will not modify
 	data on the chip
 -	The host-gen-chal call a RNG on the device. This number are not random until the device got provisioned
-	A clean chip will create somthing like 
-	Data: (32 Bytes)
-`
+	A clean chip will create somthing like as random output
+```
+Data: (32 Bytes)
 000872:  FF FF 00 00 FF FF 00 00  FF FF 00 00 FF FF 00 00   |................|
 000882:  FF FF 00 00 FF FF 00 00  FF FF 00 00 FF FF 00 00   |................|
-`
-	as random output
-	
+```
 
 
 
