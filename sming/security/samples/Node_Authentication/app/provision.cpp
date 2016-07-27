@@ -48,9 +48,6 @@
 #include <SmingCore.h>
 #include <sming/services/HexDump/HexDump.h>
 
-
-HexDump dump;
-
 /** \defgroup auth Node authentication stages for node-auth-basic example
  *
 @{ */
@@ -94,93 +91,111 @@ static int build_and_save_cert(
     uint8_t tbs_digest[32];
     uint8_t signature[64];
     size_t max_cert_size = *cert_size;
+    /*
     atcacert_tm_utc_t expire_date = {
-        issue_date->tm_year + cert_def->expire_years,
-        issue_date->tm_mon,
-        issue_date->tm_mday,
-        issue_date->tm_hour,
-        0,
-        0
+        .tm_year = issue_date->tm_year + cert_def->expire_years,
+        .tm_mon  = issue_date->tm_mon,
+        .tm_mday = issue_date->tm_mday,
+        .tm_hour = issue_date->tm_hour,
+        .tm_min  = 0,
+        .tm_sec  = 0
     };
+    */
+    atcacert_tm_utc_t expire_date = {0};
+    	expire_date.tm_year = issue_date->tm_year + cert_def->expire_years;
+    	expire_date.tm_mon = issue_date->tm_mon;
+    	expire_date.tm_mday = issue_date->tm_mday;
+    	expire_date.tm_hour = issue_date->tm_hour;
+    	expire_date.tm_min = 0;
+    	expire_date.tm_sec = 0;
+
+    /*
     const atcacert_device_loc_t config32_dev_loc = {
-        DEVZONE_CONFIG,
-        0,
-        32
+        .zone = DEVZONE_CONFIG,
+        .offset = 0,
+        .count = 32
     };
+    */
+    atcacert_device_loc_t config32_dev_loc {};
+    	config32_dev_loc.zone = DEVZONE_CONFIG;
+    	config32_dev_loc.offset = 0;
+    	config32_dev_loc.count = 32;
+
+
     atcacert_device_loc_t device_locs[4];
     size_t device_locs_count = 0;
     size_t i;
     
-	// debugf("----- Start build_and_save_cert");
+	//  debugf("----- Start build_and_save_cert");
 
     if (cert_def->expire_years == 0)
     {
         ret = atcacert_date_get_max_date(cert_def->expire_date_format, &expire_date);
         if (ret != ATCACERT_E_SUCCESS) {
-        	debugf("ERROR: atcacert_date_get_max_date");
+//        	debugf("ERROR: atcacert_date_get_max_date");
             return ret;
         }
     }
     
     ret = atcacert_cert_build_start(&build_state, cert_def, cert, cert_size, ca_public_key);
     if (ret != ATCACERT_E_SUCCESS) {
-    	debugf("ERROR: atcacert_cert_build_start");
+//    	debugf("ERROR: atcacert_cert_build_start");
         return ret;
     }
     
     ret = atcacert_set_subj_public_key(build_state.cert_def, build_state.cert, *build_state.cert_size, public_key);
     if (ret != ATCACERT_E_SUCCESS) {
-    	debugf("ERROR: atcacert_set_subj_public_key");
+ //   	debugf("ERROR: atcacert_set_subj_public_key");
         return ret;
     }
     ret = atcacert_set_issue_date(build_state.cert_def, build_state.cert, *build_state.cert_size, issue_date);
     if (ret != ATCACERT_E_SUCCESS) {
-    	debugf("ERROR: atcacert_set_issue_date");
+//    	debugf("ERROR: atcacert_set_issue_date");
     	return ret;
     }
     ret = atcacert_set_expire_date(build_state.cert_def, build_state.cert, *build_state.cert_size, &expire_date);
     if (ret != ATCACERT_E_SUCCESS) {
-    	debugf("ERROR: atcacert_set_expire_date");
+//    	debugf("ERROR: atcacert_set_expire_date");
     	return ret;
     }
     ret = atcacert_set_signer_id(build_state.cert_def, build_state.cert, *build_state.cert_size, signer_id);
     if (ret != ATCACERT_E_SUCCESS) {
-    	debugf("ERROR: atcacert_set_signer_id");
+//    	debugf("ERROR: atcacert_set_signer_id");
     	return ret;
     }
     ret = atcacert_cert_build_process(&build_state, &config32_dev_loc, config32);
     if (ret != ATCACERT_E_SUCCESS) {
-    	debugf("ERROR: atcacert_cert_build_process");
+//    	debugf("ERROR: atcacert_cert_build_process");
     	return ret;
     }
     
     ret = atcacert_cert_build_finish(&build_state);
     if (ret != ATCACERT_E_SUCCESS) {
-    	debugf("ERROR: atcacert_cert_build_finish");
+    	//  debugf("ERROR: atcacert_cert_build_finish");
     	return ret;
     }
     
     ret = atcacert_get_tbs_digest(build_state.cert_def, build_state.cert, *build_state.cert_size, tbs_digest);
     if (ret != ATCACERT_E_SUCCESS) {
-    	debugf("ERROR: atcacert_get_tbs_digest");
+    	//  debugf("ERROR: atcacert_get_tbs_digest");
     	return ret;
     }
     
     ret = atcab_sign(ca_slot, tbs_digest, signature);
     if (ret != ATCA_SUCCESS) {
-    	debugf("ERROR: atcab_sign");
+    	//  debugf("ERROR: atcab_sign");
     	return ret;
     }
     
     ret = atcacert_set_signature(cert_def, cert, cert_size, max_cert_size, signature);
     if (ret != ATCACERT_E_SUCCESS) {
-    	debugf("ERROR: atcacert_set_signature");
+    	//  debugf("ERROR: atcacert_set_signature");
     	return ret;
     }
     
     ret = atcacert_get_device_locs(cert_def, device_locs, &device_locs_count, sizeof(device_locs) / sizeof(device_locs[0]), 32);
     if (ret != ATCACERT_E_SUCCESS) {
-    	debugf("ERROR: atcacert_get_device_locs");
+    	//  debugf("ERROR: atcacert_get_device_locs");
     	return ret;
     }
     
@@ -205,7 +220,7 @@ static int build_and_save_cert(
         {
             ret = atcab_write_zone(device_locs[i].zone, device_locs[i].slot, block, 0, &data[(block - start_block) * 32], 32);
             if (ret != ATCA_SUCCESS) {
-            	debugf("ERROR: atcab_write_zone");
+            	//  debugf("ERROR: atcab_write_zone");
             	return ret;
             }
         }
@@ -232,7 +247,7 @@ size_t  device_cert_ref_size = 0;
 
 int client_provision(void) {
 
-	// debugf("----- Start client_provision");
+	//  debugf("----- Start client_provision");
     int ret = 0;
     bool lockstate = 0;
     uint8_t lock_response;
@@ -251,81 +266,108 @@ int client_provision(void) {
 
     uint8_t signer_id[2] = {0xC4, 0x8B};
 
+    /*
+    const atcacert_tm_utc_t signer_issue_date = {
+        .tm_year = 2014 - 1900,
+        .tm_mon  = 8 - 1,
+        .tm_mday = 2,
+        .tm_hour = 20,
+        .tm_min  = 0,
+        .tm_sec  = 0
+    };
+    */
+
     atcacert_tm_utc_t signer_issue_date = {};
-    signer_issue_date.tm_year =	2016 - 1900;
-    signer_issue_date.tm_mon  = 8 - 1;
-    signer_issue_date.tm_mday = 22 - 1;
-    signer_issue_date.tm_hour = 23 - 1;
-    signer_issue_date.tm_min  = 0;
-    signer_issue_date.tm_sec  = 0;
+    	signer_issue_date.tm_year =	2014 - 1900;
+    	signer_issue_date.tm_mon  = 8 - 1;
+    	signer_issue_date.tm_mday = 2;
+    	signer_issue_date.tm_hour = 20;
+    	signer_issue_date.tm_min  = 0;
+    	signer_issue_date.tm_sec  = 0;
 
+    /*
+    uint8_t device_private_key_slot = 0;
+    const atcacert_tm_utc_t device_issue_date = {
+        .tm_year = 2015 - 1900,
+        .tm_mon  = 9 - 1,
+        .tm_mday = 3,
+        .tm_hour = 21,
+        .tm_min  = 0,
+        .tm_sec  = 0
+    };
+    */
     atcacert_tm_utc_t device_issue_date = {};
-    device_issue_date.tm_year =	2016 - 1900;
-    device_issue_date.tm_mon  = 8 - 1;
-    device_issue_date.tm_mday = 22 - 1;
-    device_issue_date.tm_hour = 23 - 1;
-    device_issue_date.tm_min  = 0;
-    device_issue_date.tm_sec  = 0;
+		device_issue_date.tm_year =	2015 - 1900;
+		device_issue_date.tm_mon  = 9 - 1;
+		device_issue_date.tm_mday = 3;
+		device_issue_date.tm_hour = 21;
+		device_issue_date.tm_min  = 0;
+		device_issue_date.tm_sec  = 0;
 
-
-    // debugf("----- atcab_sleep();");
+    //  debugf("----- atcab_sleep();");
     atcab_sleep();
 
-    // debugf("----- atcab_is_locked();");
+    //  debugf("----- atcab_is_locked();");
     ret = atcab_is_locked(LOCK_ZONE_CONFIG, &lockstate);
     if (ret != ATCA_SUCCESS) return ret;
-    // debugf("----- lockstate ?");
+    //  debugf("----- lockstate ?");
     if (!lockstate)
     {
         ret = atcab_write_ecc_config_zone(g_ecc_configdata);
         if (ret != ATCA_SUCCESS) {
-        	debugf("ERROR - atcab_write_ecc_config_zone");
+        	//  debugf("ERROR - atcab_write_ecc_config_zone");
             return ret;
         }
 
         ret = atcab_lock_config_zone(&lock_response);
         if (ret != ATCA_SUCCESS) {
-        	debugf("ERROR - atcab_lock_config_zone");
+        	//  debugf("ERROR - atcab_lock_config_zone");
             return ret;
         }
     } else {
-    	debugf("----- Device locked - can't write CONFIG_ZONE");
+    	//  debugf("----- Device locked - can't write CONFIG_ZONE");
     }
 
 	// Read the first 64 bytes of the config zone to get the slot config at least
-    // debugf("----- Read the first 64 bytes of the config zone");
+    //  debugf("----- Read the first 64 bytes of the config zone");
 	ret = atcab_read_zone(ATCA_ZONE_CONFIG, 0, 0, 0, &config64[0], 32);
     if (ret != ATCA_SUCCESS) {
-    	debugf("ERROR - atcab_lockatcab_read_zone 0");
+    	//  debugf("ERROR - atcab_lockatcab_read_zone 0");
         return ret;
     }
 	ret = atcab_read_zone(ATCA_ZONE_CONFIG, 0, 1, 0, &config64[32], 32);
     if (ret != ATCA_SUCCESS) {
-    	debugf("ERROR - atcab_lockatcab_read_zone 32");
+    	//  debugf("ERROR - atcab_lockatcab_read_zone 32");
         return ret;
     }
 
 	is_signer_ca_slot_ext_sig    = (config64[20 + signer_ca_private_key_slot*2] & 0x01);
 	is_signer_ca_slot_priv_write = (config64[20 + signer_ca_private_key_slot*2 + 1] & 0x40);
 
-    // debugf("----- !lockstate LOCK_ZONE_DATA");
+    //  debugf("----- !lockstate LOCK_ZONE_DATA");
     ret = atcab_is_locked(LOCK_ZONE_DATA, &lockstate);
     if (ret != ATCA_SUCCESS) return ret;
     if (!lockstate)
     {
-        // debugf("----- !lockstate ");
+        //  debugf("----- !lockstate ");
         ret = atcab_priv_write(signer_ca_private_key_slot, g_signer_ca_private_key, 0, NULL);
-        if (ret != ATCA_SUCCESS) return ret;
+        if (ret != ATCA_SUCCESS) {
+        	//  debugf("----- ERROR atcab_priv_write");
+        	return ret;
+        }
 
 		ret = atcab_write_zone(DEVZONE_DATA, access_key_slot, 0, 0, access_key, 32);
-        if (ret != ATCA_SUCCESS) return ret;
+        if (ret != ATCA_SUCCESS) {
+        	//  debugf("----- ERROR atcab_write_zone");
+        	return ret;
+        }
 
         ret = atcab_lock_data_zone(&lock_response);
         if (ret != ATCA_SUCCESS) return ret;
     }
 	else if (!is_signer_ca_slot_ext_sig)
 	{
-        // debugf("----- !is_signer_ca_slot_ext_sig ?");
+        //  debugf("----- !is_signer_ca_slot_ext_sig ?");
 		// The signer CA slot can't perform external signs.
 		// Use the signer slot for both. A little weird, but it lets the example run.
 		printf("Signer CA slot %d not available. Signer CA and signer will be sharing a key.\r\n", signer_ca_private_key_slot);
@@ -333,27 +375,30 @@ int client_provision(void) {
 	}
 	else if (is_signer_ca_slot_priv_write)
 	{
-        // debugf("----- is_signer_ca_slot_priv_write ?");
+        //  debugf("----- is_signer_ca_slot_priv_write ?");
 		ret = atcab_priv_write(signer_ca_private_key_slot, g_signer_ca_private_key, access_key_slot, access_key);
 		if (ret != ATCA_SUCCESS) return ret;
 	}
 
-    // debugf("----- signer_ca_private_key_slot != signer_private_key_slot");
+    //  debugf("----- signer_ca_private_key_slot != signer_private_key_slot");
 	if (signer_ca_private_key_slot != signer_private_key_slot)
 	{
-        // debugf("----- atcab_get_pubkey");
+        //  debugf("----- atcab_get_pubkey");
 		ret = atcab_get_pubkey(signer_ca_private_key_slot, g_signer_ca_public_key);
 		if (ret == ATCA_EXECUTION_ERROR)
 			ret = atcab_genkey(signer_ca_private_key_slot, g_signer_ca_public_key);
-		if (ret != ATCA_SUCCESS) return ret;
+		if (ret != ATCA_SUCCESS) {
+			//  debugf("----- ERROR: atcab_genkey %d", ret);
+			return ret;
+		}
 		printf("Signer CA Public Key:");
 		dump.print(g_signer_ca_public_key, ATCA_PUB_KEY_SIZE);
 	}
 
-	// debugf("----- Already provisioned -> atcab_get_pubkey");
-	ret = atcab_get_pubkey(signer_private_key_slot, signer_public_key);
+	//  debugf("----- atcab_genkey(signer_private_key_slot, signer_public_key)");
+	ret = atcab_genkey(signer_private_key_slot, signer_public_key);
 	if (ret != ATCA_SUCCESS) {
-		// debugf("----- ERROR: atcab_genkey %d", ret);
+		//  debugf("----- ERROR: atcab_get_pubkey %d", ret);
 		return ret;
 	}
 	if (signer_ca_private_key_slot == signer_private_key_slot)
@@ -365,11 +410,14 @@ int client_provision(void) {
 	printf("Signer Public Key:");
 	dump.print(signer_public_key, ATCA_PUB_KEY_SIZE);
 
-	ret = atcab_get_pubkey(device_private_key_slot, device_public_key);
-	if (ret != ATCA_SUCCESS) return ret;
+	//  debugf("----- atcab_genkey(device_private_key_slot, device_public_key)");
+	ret = atcab_genkey(device_private_key_slot, device_public_key);
+	if (ret != ATCA_SUCCESS) {
+		//  debugf("----- ERROR: atcab_genkey %d", ret);
+		return ret;
+	}
 	printf("Device Public Key:");
 	dump.print(device_public_key, ATCA_PUB_KEY_SIZE);
-
 
     signer_cert_ref_size = sizeof(signer_cert_ref);
     ret = build_and_save_cert(
@@ -408,7 +456,7 @@ int client_provision(void) {
     printf("Device Certificate:");
 	dump.print(device_cert_ref, signer_cert_ref_size);
 
-    // debugf("----- client_prov exit 0");
+    //  debugf("----- client_prov exit 0");
     return 0;
 
 }

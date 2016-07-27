@@ -6,6 +6,7 @@
  */
 
 #include <SmingCore.h>
+#include <espressif/esp_libc.h>
 #include <security/libraries/cryptoauthlib/cryptoauthlib.h>
 
 #include "NodeCommands.h"
@@ -15,11 +16,10 @@
 #include "cert_def_2_device.h"
 
 #include <sming/services/HexDump/HexDump.h>
-extern HexDump dump;
 
 NodeCommands::NodeCommands()
 {
-	debugf("NodeCommands Instantiating");
+//	debugf("NodeCommands Instantiating");
 }
 
 NodeCommands::~NodeCommands()
@@ -42,72 +42,51 @@ void NodeCommands::help() {
 	printf("lockdata - lock data and OTP zones - WARNING set to read only can't be undone\r\n");
 	printf("info     - get the chip revision\r\n");
 	printf("sernum   - get the chip serial number\r\n");
-	printf("random   - generate random number\r\n");
-	printf("cert-tmpl- show cert template data\r\n");
-	printf("dev-tmpl - how device template data\r\n");
 
 	printf("\r\n");
 }
 
 
 void NodeCommands::clientProvision() {
-
-	int result = 0;
-
 	printf("Client Provisioning\r\n");
-	result = client_provision();
-	printf("Result [%d]\r\n", result);
-
+	int ret = client_provision();
+    if (ret != ATCA_SUCCESS)
+        printf("client_provision failed with error code %X\r\n", ret);
 }
 
 void NodeCommands::clientBuild() {
-
-	int result = 0;
-
 	printf("Client Build\r\n");
-	result = client_rebuild_certs();
-	printf("Result [%d]\r\n", result);
-
+	int ret = client_rebuild_certs();
+    if (ret != ATCA_SUCCESS)
+          printf("client_rebuild_certs failed with error code %X\r\n", ret);
 }
 
 void NodeCommands::hostVerifyCertChain() {
-
-	int result = 0;
-
 	printf("Host Verify Chain\r\n");
-	result = host_verify_cert_chain();
-	printf("Result [%d]\r\n", result);
-
-}
-
-void NodeCommands::clientGenerateResponse() {
-
-	int result = 0;
-
-	printf("Client Generate Response\r\n");
-	result = client_generate_response();
-	printf("Result [%d]\r\n", result);
-
+	int ret = host_verify_cert_chain();
+    if (ret != ATCA_SUCCESS)
+        printf("host_verify_cert_chain failed with error code %X\r\n", ret);
 }
 
 void NodeCommands::hostGenerateChallenge() {
-
-	int result = 0;
-
 	printf("Host Generate Challenge\r\n");
-	result = host_generate_challenge();
-	printf("Result [%d]\r\n", result);
+	int ret = host_generate_challenge();
+    if (ret != ATCA_SUCCESS)
+        printf("host_generate_challenge failed with error code %X\r\n", ret);
+}
 
+void NodeCommands::clientGenerateResponse() {
+	printf("Client Generate Response\r\n");
+	int ret = client_generate_response();
+    if (ret != ATCA_SUCCESS)
+        printf("client_generate_response failed with error code %X\r\n", ret);
 }
 
 void NodeCommands::hostVerifyResponse() {
-
-	int result = 0;
-
 	printf("Host Verify Response\r\n");
-	result = host_verify_response();
-	printf("Result [%d]\r\n", result);
-
+	int ret = host_verify_response();
+    if (ret != ATCA_SUCCESS)
+        printf("verify_response failed with error code %X\r\n", ret);
 }
 
 
@@ -153,26 +132,6 @@ void NodeCommands::random(void) {
 
 }
 
-void NodeCommands::ctempl(void) {
-
-	printf("CA Template  : [");
-	dump.print((unsigned char*)g_cert_template_1_signer, sizeof(g_cert_template_1_signer));
-	printf("]\r\n");
-
-}
-
-void NodeCommands::dtempl(void) {
-
-	printf("Device Template  : [");
-	dump.print((unsigned char*)g_cert_template_2_device, sizeof(g_cert_template_1_signer));
-	printf("]\r\n");
-
-}
-
-/** \brief  lockstatus queries the lock status of configuration and data zones
- *  and prints the status of the zones to the console
- *  \return ATCA_STATUS
- */
 
 void NodeCommands::lockstat(void)
 {
@@ -200,7 +159,9 @@ void NodeCommands::lockcfg(void)
 	uint8_t lock_response;
 	atcab_lock_config_zone( &lock_response );
 
-	printf("lock_config_zone = %d\r\n", lock_response);
+	if ( lock_response != ATCA_SUCCESS )
+		printf("Could not lock config zone\r\n");
+	lockstat();
 }
 
 /** \brief lock_data_zone will lock the data zone of the CryptoAuth device
@@ -211,7 +172,9 @@ void NodeCommands::lockdata(void)
 	uint8_t lock_response;
 	atcab_lock_data_zone( &lock_response );
 
-	printf("lock_data_zone = %d\r\n", lock_response);
+	if ( lock_response != ATCA_SUCCESS )
+		printf("Could not lock data zone\r\n");
+	lockstat();
 }
 
 

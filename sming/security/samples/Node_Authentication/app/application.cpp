@@ -26,8 +26,8 @@ void serialCallBack(Stream& stream, char arrivedChar, unsigned short availableCh
 		}
 		if (!strcmp(str, "help")) {
 			cmd.help();
-//		} else if (!strcmp(str, "client-provision")) {
-//			cmd.clientProvision();
+		} else if (!strcmp(str, "client-provision")) {
+			cmd.clientProvision();
 		} else if (!strcmp(str, "client-build")) {
 			cmd.clientBuild();
 		} else if (!strcmp(str, "host-chain-verify")) {
@@ -48,12 +48,6 @@ void serialCallBack(Stream& stream, char arrivedChar, unsigned short availableCh
 			cmd.info();
 		} else if (!strcmp(str, "sernum")) {
 			cmd.sernum();
-		} else if (!strcmp(str, "random")) {
-			cmd.random();
-		} else if (!strcmp(str, "cert-tmpl")) {
-			cmd.ctempl();
-		} else if (!strcmp(str, "dev-tmpl")) {
-			cmd.dtempl();
 		} else {
 			Serial.println("unknown command");
 		}
@@ -61,7 +55,14 @@ void serialCallBack(Stream& stream, char arrivedChar, unsigned short availableCh
 }
 
 
-ATCAIfaceCfg cfg_ateccx08a_i2c = {ATCA_I2C_IFACE, ATECC508A, 0xC0, 1, 200000, 800, 20};
+ATCAIfaceCfg cfg_ateccx08a_i2c = {
+		ATCA_I2C_IFACE, 	// active iface - how to interpret the union below
+		ATECC508A, 			// explicit device type
+		0xC0, 				// 8-bit slave address (I2C)
+		1, 					// logical i2c bus number, 0-based - HAL will map this to a pin pair for SDA SCL
+		200000, 			// baud rate i.e. I2C bus frequency - typically 400000
+		800,				// wake_delay: microseconds of tWHI + tWLO which varies based on chip type
+		20};				// the number of retries to attempt for receiving bytes
 
 void setup_authlib() {
 	Serial.println("Init Authentication Device\r\n");

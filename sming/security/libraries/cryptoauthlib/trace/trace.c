@@ -9,7 +9,7 @@
 #include <ctype.h>
 #include <espressif/esp_libc.h>
 
-#define CRYPT_TRACE
+//#define CRYPT_TRACE
 
 char t_oc[] = "0123456789ABCDEF";
 int t_addr = 0;
@@ -59,19 +59,4 @@ void trace(char *label) {
 
 }
 
-void tr_packet(ATCAPacket packet) {
-
-#ifdef CRYPT_TRACE
-	os_printf("\nATCAPacket");
-	os_printf("\n _reserved %X", packet._reserved);
-	os_printf("\n opcode %X", packet.opcode);
-	os_printf("\n param1 %X", packet.param1);
-	os_printf("\n param2 %X", packet.param2);
-	os_printf("\n txsize %d", packet.txsize);
-	os_printf("\n rxsize %d", packet.rxsize);
-	os_printf("\n execTime %X", packet.execTime);
-	tracef("\ndata", packet.data, 130);
-#endif
-
-}
 

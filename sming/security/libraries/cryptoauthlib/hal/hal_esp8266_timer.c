@@ -51,7 +51,7 @@ void atca_delay_ms(uint32_t delay)
 		os_delay_us(1000);
 		time = system_get_time() / 1000UL - startTime;
 	} while (time  < delay);
-	printf ("atcs_delay was %d ms required %d\n", time, delay);
+//	printf ("atcs_delay was %d ms required %d\n", time, delay);
 }
 
 

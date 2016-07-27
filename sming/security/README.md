@@ -4,7 +4,6 @@ Based on: Sming_RTOS Beta version
 Based on: Espressif RTOS_SDK 1.4.0
 Based on: Atmel CryptoAuthLib Firmware Library 20160108
 
-
 Currently tested with ATECC508A device but should work with other devices as well
 
 The library port is as less intrusiv as possible.
@@ -54,6 +53,45 @@ Required Hardware
 	Soldering them is easier as I initialy thought.
 -	Other more expensife options are the "AT88CK101 Development Kit" from atmel that have a socket to hold the
 	chip and connectors to wire them with the ESP 
+	
+Configuring sample application
+
+-	Check out the Node_Authetication app on how to init the Library
+
+`ATCAIfaceCfg cfg_ateccx08a_i2c = {
+		ATCA_I2C_IFACE, 	// active iface - how to interpret the union below
+		ATECC508A, 			// explicit device type
+		0xC0, 				// 8-bit slave address (I2C)
+		1, 					// logical i2c bus number, 0-based - HAL will map this to a pin pair for SDA SCL
+		200000, 			// baud rate i.e. I2C bus frequency - typically 400000
+		800,				// wake_delay: microseconds of tWHI + tWLO which varies based on chip type
+		20};				// the number of retries to attempt for receiving bytes`
+		
+
+-	The logical bus numbers i.e. the assigned GPIO pins are defined in in the HAL implementation -> hal_esp8266_i2c_RTOS.h
+
+`#define MAX_I2C_BUSES 2
+
+I2CBuses TWI_Bus[MAX_I2C_BUSES] = {{4, 5}, {0,2}};`
+
+Using the Node_Authentication sample app
+
+-	The samples should be executed in sequence as one command might initialize the context for the next command (e.g. create a calleng before the response and verifiing the response)
+-	The client-provision will create the keys, stores them on the chip and lock the device to read only.
+	This is a one time only process. However you can call the command multiple times but it will not modify
+	data on the chip
+-	The host-gen-chal call a RNG on the device. This number are not random until the device got provisioned
+	A clean chip will create somthing like 
+	Data: (32 Bytes)
+`000872:  FF FF 00 00 FF FF 00 00  FF FF 00 00 FF FF 00 00   |................|
+000882:  FF FF 00 00 FF FF 00 00  FF FF 00 00 FF FF 00 00   |................|`
+	as random output
+	
+
+
+
+
+
 	
 	
 

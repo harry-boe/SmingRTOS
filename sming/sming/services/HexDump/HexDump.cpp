@@ -68,3 +68,6 @@ void HexDump::resetAddr() {
 	addr = 0;
 }
 
+HexDump dump;
+
+

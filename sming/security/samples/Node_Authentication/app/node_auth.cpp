@@ -49,7 +49,6 @@
 
 #include <sming/services/HexDump/HexDump.h>
 
-extern HexDump dump;
 
 /** \defgroup auth Node authentication stages for node-auth-basic example
  *
