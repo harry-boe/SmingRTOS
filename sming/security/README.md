@@ -58,21 +58,25 @@ Configuring sample application
 
 -	Check out the Node_Authetication app on how to init the Library
 
-`ATCAIfaceCfg cfg_ateccx08a_i2c = {
+`
+ATCAIfaceCfg cfg_ateccx08a_i2c = {
 		ATCA_I2C_IFACE, 	// active iface - how to interpret the union below
 		ATECC508A, 			// explicit device type
 		0xC0, 				// 8-bit slave address (I2C)
 		1, 					// logical i2c bus number, 0-based - HAL will map this to a pin pair for SDA SCL
 		200000, 			// baud rate i.e. I2C bus frequency - typically 400000
 		800,				// wake_delay: microseconds of tWHI + tWLO which varies based on chip type
-		20};				// the number of retries to attempt for receiving bytes`
+		20};				// the number of retries to attempt for receiving bytes
+`
 		
 
 -	The logical bus numbers i.e. the assigned GPIO pins are defined in in the HAL implementation -> hal_esp8266_i2c_RTOS.h
 
-`#define MAX_I2C_BUSES 2
+`
+#define MAX_I2C_BUSES 2
 
-I2CBuses TWI_Bus[MAX_I2C_BUSES] = {{4, 5}, {0,2}};`
+I2CBuses TWI_Bus[MAX_I2C_BUSES] = {{4, 5}, {0,2}};
+`
 
 Using the Node_Authentication sample app
 
@@ -83,8 +87,10 @@ Using the Node_Authentication sample app
 -	The host-gen-chal call a RNG on the device. This number are not random until the device got provisioned
 	A clean chip will create somthing like 
 	Data: (32 Bytes)
-`000872:  FF FF 00 00 FF FF 00 00  FF FF 00 00 FF FF 00 00   |................|
-000882:  FF FF 00 00 FF FF 00 00  FF FF 00 00 FF FF 00 00   |................|`
+`
+000872:  FF FF 00 00 FF FF 00 00  FF FF 00 00 FF FF 00 00   |................|
+000882:  FF FF 00 00 FF FF 00 00  FF FF 00 00 FF FF 00 00   |................|
+`
 	as random output
 	
 
